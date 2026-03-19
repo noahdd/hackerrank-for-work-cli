@@ -88,6 +88,84 @@ export class HackerRankClient {
     return this.request(`/interviews/${interviewId}/transcript`);
   }
 
+  // Interview code recordings (uses /api/ not /x/api/v3/)
+  private get recordingsBaseUrl(): string {
+    // The recordings endpoint lives at /api/ regardless of the v3 base URL
+    const base = this.baseUrl.replace(/\/x\/api\/v3$/, "");
+    return `${base}/api`;
+  }
+
+  async getInterviewCode(interviewId: string, run?: number): Promise<unknown> {
+    const url = new URL(`${this.recordingsBaseUrl}/interviews/${interviewId}/recordings/code`);
+    const response = await fetch(url.toString(), {
+      headers: {
+        Authorization: `Bearer ${this.apiKey}`,
+        Accept: "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const body = await response.text();
+      throw new Error(`API error ${response.status}: ${body}`);
+    }
+
+    const raw = await response.json() as any;
+    const questions = raw?.data?.questions || [];
+
+    const result = questions.map((q: any, idx: number) => {
+      const name = q.name || `Question ${idx + 1}`;
+      const lang = q.language || "unknown";
+      const runs = q.runs || [];
+      const ops = q.ops || [];
+
+      // Replay OT ops to get the final editor state
+      let finalCode = "";
+      for (const op of ops) {
+        const o = op.o || [];
+        let pos = 0;
+        let next = "";
+        for (const c of o) {
+          if (typeof c === "number") {
+            if (c > 0) {
+              next += finalCode.slice(pos, pos + c);
+              pos += c;
+            } else {
+              pos += Math.abs(c);
+            }
+          } else if (typeof c === "string") {
+            next += c;
+          }
+        }
+        if (pos < finalCode.length) next += finalCode.slice(pos);
+        finalCode = next;
+      }
+
+      if (run !== undefined) {
+        // Return a specific run's code
+        const r = runs[run] || runs[runs.length - 1];
+        return {
+          question: name,
+          language: lang,
+          run: run < runs.length ? run : runs.length - 1,
+          total_runs: runs.length,
+          code: r?.code || "",
+          output: r?.response?.stdout?.[0] || "",
+          stderr: r?.response?.stderr?.[0] || "",
+        };
+      }
+
+      // Default: return the final editor state (last frame of replay)
+      return {
+        question: name,
+        language: lang,
+        total_runs: runs.length,
+        code: finalCode,
+      };
+    });
+
+    return result;
+  }
+
   // Questions
 
   async listQuestions(limit = "20", offset = "0") {
@@ -120,5 +198,6 @@ export const getCandidatePdf = (testId: string, candidateId: string) => getClien
 export const listInterviews = (limit?: string, offset?: string) => getClient().listInterviews(limit, offset);
 export const getInterview = (interviewId: string) => getClient().getInterview(interviewId);
 export const getInterviewTranscript = (interviewId: string) => getClient().getInterviewTranscript(interviewId);
+export const getInterviewCode = (interviewId: string, run?: number) => getClient().getInterviewCode(interviewId, run);
 export const listQuestions = (limit?: string, offset?: string) => getClient().listQuestions(limit, offset);
 export const getQuestion = (questionId: string) => getClient().getQuestion(questionId);

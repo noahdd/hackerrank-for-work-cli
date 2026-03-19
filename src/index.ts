@@ -10,6 +10,7 @@ import {
   listInterviews,
   getInterview,
   getInterviewTranscript,
+  getInterviewCode,
   listQuestions,
   getQuestion,
 } from "./client.js";
@@ -26,12 +27,15 @@ Commands:
   interviews                         List all interviews
   interviews <id>                    Get interview details
   transcript <interview_id>          Get interview transcript
+  code <interview_id>                Get candidate's final code (last frame)
+  code <interview_id> --run <n>      Get code from a specific run (0-indexed)
   questions                          List all questions
   questions <id>                     Get question details
 
 Options:
   --limit <n>     Number of results (default: 20, max: 100)
   --offset <n>    Pagination offset (default: 0)
+  --run <n>       Specific run index for code command (default: last frame)
   --help          Show this help
 
 Environment:
@@ -109,6 +113,17 @@ async function main() {
         process.exit(1);
       }
       result = await getInterviewTranscript(positional[1]);
+      break;
+
+    case "code":
+      if (!positional[1]) {
+        console.error("Usage: hackerrank code <interview_id> [--run <n>]");
+        process.exit(1);
+      }
+      result = await getInterviewCode(
+        positional[1],
+        flags.run !== undefined ? parseInt(flags.run) : undefined,
+      );
       break;
 
     case "questions":
