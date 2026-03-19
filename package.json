@@ -1,0 +1,19 @@
+{
+  "name": "hackerrank-for-work-cli",
+  "version": "0.1.0",
+  "description": "CLI to fetch interview and test results from HackerRank for Work",
+  "type": "module",
+  "main": "build/index.js",
+  "bin": {
+    "hackerrank": "./build/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "@types/node": "^20.11.0"
+  }
+}
