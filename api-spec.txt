@@ -1,0 +1,4238 @@
+We use cookies to ensure you have the best browsing experience on our website. Please read our cookie policy for more information about how we use cookies.
+OK
+HackerRank for Work API
+TOKEN
+API
+Resources
+HTTP Statuses
+Authentication
+Partial Response
+Additional Response
+Expanding Objects
+Bulk Fetch
+Pagination
+Sorting
+Filtering
+
+HackerRank for Work
+
+Documentation for the API of HackerRank for Work.
+
+Contact: support@hackerrank.com
+
+base url: api version: v3
+
+API
+
+The HackerRank for Work API is organized around REST. Our API has predictable, resource-oriented URLs, and uses HTTP response codes to indicate API errors. We use built-in HTTP features, like HTTP authentication and HTTP verbs, which are understood by off-the-shelf HTTP clients. We support cross-origin resource sharing, allowing you to interact securely with our API from a client-side web application (though you should never expose your secret API key in any public website's client-side code). JSON is returned by all API responses, including errors.
+
+Resources
+
+Any tool that is fluent in HTTP can communicate with the API simply by requesting the correct URI. Requests should be made using the HTTPS protocol so that traffic is encrypted. The interface responds to different methods depending on the action required.
+
+Method	Usage
+GET	
+
+For simple retrieval of information about a resource (user, team, etc) you should use the GET method. The information you request will be returned to you as a JSON object.
+
+The attributes defined by the JSON object can be used to form additional requests. Any request using the GET method is read-only and will not affect any of the objects you are querying.
+
+
+DELETE	
+
+To destroy a resource and remove it from your account and environment, the DELETE method should be used. This will remove the specified object if it is found. If it is not found, the operation will return a response indicating that the object was not found.
+
+This idempotency means that you do not have to check for a resource's availability prior to issuing a delete command, the final state will be the same regardless of its existence.
+
+
+PUT	
+
+To update the information about a resource in your account, the PUT method is available.
+
+Like the DELETE Method, the PUT method is idempotent. It sets the state of the target using the provided values, regardless of their current values. Requests using the PUT method do not need to check the current attributes of the object.
+
+
+POST	
+
+To create a new object, your request should specify the POST method.
+
+The POST request must include all of the attributes necessary to create a new object. When you wish to create a new object, send a POST request to the resource endpoint.
+
+
+OPTIONS	
+
+Finally, to retrieve header information, you should use the OPTIONS method to get the headers. This returns only the header of what would be returned with an associated GET request.
+
+Response headers contain some useful information about your API access and the results that are available for your request.
+
+For instance, the headers contain your current rate-limit value and the amount of time available until the limit resets. It also contains metrics about the total number of objects found, pagination information, and the total content length.
+
+In any of the resources, non mandatory new fields can be added without any prior intimation. Please make sure that your implementation which uses this API do not fails in such a case.
+
+HTTP Statuses
+
+Along with the HTTP methods that the API responds to, it will also return standard HTTP statuses, including error codes.
+
+In the event of a problem, the status will contain the error code, while the body of the response will usually contain additional information about the problem that was encountered.
+
+Code Range	Description
+2xx	This range of response code indicates that request was fulfilled successfully and no error was encountered.
+400	This return code indicates that there was an error in fulfilling the request because the syntax of URL was incorrect. The detail of the error will present in the body of response. Please do not repeat this request without modification
+401	This return code means that we are not able to authenticate your request. Please make sure that a correct access token is provided in the request in the appropriate format.
+403	This error code indicates that the user identified by the access token does not have permission to perform the requested action. If your account is locked, response code will always be 403.
+404	This response indicates that the resource you are trying to access does not exists. Please note that this error will also be returned when the resource exists but belongs to a different account than is indicated by the access code.
+422	This error code indicate that while the syntax was correct, request cannot be fulfilled because there was an issue in processing request body. An example of this could be getting inviting a candidate to a test for which they are already invited. More details about the error code can be found in the response body.
+429	This response code indicates that you have exceeded rate limit for using the API.
+5xx	This response code indicates that there was an internal server error while processing the request. We are automatically notified of these errors, however if you are seeing these for extended amount of time, then please report to support@hackerrank.com
+Authentication
+
+Authenticate your account when using the API by including your secret API key in the request. You can manage your API keys in the Settings page. Your API keys carry many privileges, so be sure to keep them secret!
+
+Do not share your secret API keys in publicly accessible areas such GitHub, client-side code, and so forth.
+
+
+Authentication to the API is performed via HTTP Basic Auth. Provide your API key as the basic auth username value. You do not need to provide a password.
+
+If you need to authenticate via bearer auth (e.g., for a cross-origin request), use -H "Authorization: Bearer hackerrank_api_key" instead of -u hackerrank_api_key:.
+
+All API requests must be made over HTTPS. Calls made over plain HTTP will fail. API requests without authentication will also fail.
+
+Partial Response
+
+By default, the server sends back the default representation of a resource after processing requests. For better performance and saving bandwidth, you can ask the server to send only the fields you really need and get a partial response instead.
+
+To request a partial response, use the fields request parameter to specify the fields you want returned. You can use this parameter with any request that returns response data.
+
+For example, /users?fields=id,email will fetch only the id and email of users.
+
+Additional Response
+
+Many resources also have various additional attributes that will not be the part of the basic response. To query them you have to specify those attributes in fields query.
+
+You can provide a comma separated list of the all the fields you want to query, including the basic fields as well as the additional fields
+
+All the additional fields that are available for the resources will be documented in the resource page.
+
+Expanding Objects
+
+Many objects contain the ID of a related object in their response properties. For example, a Test may have an associated User ID. Those objects can be expanded inline with the expand request parameter. Objects that can be expanded will be tagged as [Expandable] in this documentation. This parameter is available on all API requests, and applies to the response of that request only.
+
+You can expand multiple objects at once by identifying multiple items in the expand array.
+
+All the attributes that can be expanded will be tagged as expandable
+
+Nesting object expanding is not allowed.
+
+Bulk Fetch
+
+Most API resources have support for bulk fetches.
+
+All bulk fetch calls also support Partial response, additional response and expanding objects.
+
+Pagination
+
+All bulk fetch responses are paginated. Paginated requests share a common structure, taking at least these two parameters: offset and limit. The default value for offset is 0 and default value for limit is 10.
+
+The pagination info is included in the response body. It is important to follow link values that are returned instead of constructing your own URLs.
+
+If not provided, then the value of limit will be assumed as 10
+
+Please note than maximum value of limit can be 100
+
+Sorting
+
+In bulk fetch calls, sorting is also supported for some attributes in the resource. To query sorted items, you can provide comma separated list of fields by which you the want result to be sorted.
+
+By default the order of sorting is DESC. However if you want to sort in ascending order for a particular field, you can prepend a - sign in that field.
+
+Please note that not all attributes support sorting, the attributes that will support sorting will be marked as such in the documentation
+
+Filtering
+
+Similar to sorting, bulk fetch calls also support filtering. To implement a filter in a request, just provide the attribute name and its value you want to filter as a query parameter
+
+Not all attributes support filter, attributes supporting filter will be marked as such.
+
+Filters are applied differently depending upon the data type:
+
+Datatype	Description	Example
+DateTime	Filters on datetime are applied in form of from..to. Both from and to are in form of YYYY-MM-DDThh:mm:ssÂ±zzz where zzz is offset form UTC timezone in form of hh:mm including a leading zero for single digit hour value. All time values are 24 hour format	GET: /resource?created_at=2016-12-24T09:00:00-08:00..2016-12-28T13:30:00-08:00
+String	Attributes with string datatype only support exact match filter. Partial match and regex/wildcard match is not supported.	GET /resource?email=abc@example.com
+Integer	Integer datatype support both exact match filter and from..to notation	GET /resource?state=1..7
+GET /resource?state=5
+Boolean	Boolean datatype filters support exact match which can be true, false or null	GET /resource?valid=true
+
+User object
+
+User object represents the members of your team who have a valid HackerRank for Work account. The API allows you to create, delete and update your users. You can retrieve individual users as well as a list of all the users in your company.
+
+Permission can be applied on candidates, interviews, questions and tests separately.
+
+Value for the permission will mean following:
+
+Permission Value	Access level
+0	User cannot access the resource
+1	User has read access for this resources
+2	User has read and write access for this resource
+3	User has read, write and delete access for this resource
+
+Default permissions for each role are:
+
+Role	Permissions
+Recruiter	Level 3 permission for all resources
+Developer	Level 3 permission for all resources
+Interviewer	Level 3 permission for questions and interviews. 0 for rest
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "id": "jox1JH13",
+  "email": "mark@example.com",
+  "firstname": "Mark",
+  "lastname": "Peirson",
+  "country": "U.S.A.",
+  "role": "recruiter",
+  "send_email": true,
+  "status": "locked",
+  "phone": "+1-202-28490",
+  "timezone": "America/New_York",
+  "questions_permission": 0,
+  "tests_permission": 0,
+  "interviews_permission": 0,
+  "candidates_permission": 0,
+  "shared_questions_permission": 0,
+  "shared_tests_permission": 0,
+  "shared_interviews_permission": 0,
+  "shared_candidates_permission": 0,
+  "company_admin": false,
+  "team_admin": false,
+  "activated": false,
+  "last_activity_time": "2026-03-19T19:26:29+0000"
+}
+Create user
+POST	/x/api/v3/users
+
+Create a new user object.
+
+Parameters
+
+
+User 
+ARGUMENTS
+{}	User
+email
+string
+Email address of user
+firstname
+string
+First name of user
+lastname
+string(optional)
+last name of user
+country
+string(optional)
+country of user
+role
+string
+When role is admin, it defaults to recruiter. Role of user
+Can be recruiter, developer, interviewer or admin
+send_email
+boolean(optional)
+Whether to send activation mail to user. Please note that this should be set to false only when you are using SSO to login to HackerRank
+phone
+string(optional)
+Phone number of the user
+questions_permission
+integer(optional)
+Whether user has permission to create questions
+Can be 0 or 3
+tests_permission
+integer(optional)
+Whether user has permission to create tests
+Can be 0 or 3
+interviews_permission
+integer(optional)
+Whether user has permission to create interviews
+Can be 0 or 3
+candidates_permission
+integer(optional)
+Whether user has permission to create candidates
+Can be 0 or 3
+shared_questions_permission
+integer(optional)
+Whether user has permission to view/edit/delete questions shared with it.
+Can be 0, 1, 2 or 3
+shared_tests_permission
+integer(optional)
+Whether user has permission to view/edit/delete tests shared with it.
+Can be 0, 1, 2 or 3
+shared_interviews_permission
+integer(optional)
+Whether user has permission to view/edit/delete interviews shared with it.
+Can be 0, 1, 2 or 3
+shared_candidates_permission
+integer(optional)
+Whether user has permission to view/edit/delete candidates shared with it.
+Can be 0, 1, 2 or 3
+company_admin
+boolean(optional)
+Whether the user is a company admin or not.
+team_admin
+boolean(optional)
+Whether the user is a team admin of the teams that it is a part of.
+teams
+array[UserTeam]
+List of teams user belongs to.
+{}	UserTeam
+id
+string
+Id of the team
+RETURNS
+REQUEST BODY SAMPLE
+{
+  "email": "mark@example.com",
+  "firstname": "Mark",
+  "lastname": "Peirson",
+  "country": "U.S.A.",
+  "role": "recruiter",
+  "send_email": true,
+  "phone": "+1-202-28490",
+  "questions_permission": 0,
+  "tests_permission": 0,
+  "interviews_permission": 0,
+  "candidates_permission": 0,
+  "shared_questions_permission": 0,
+  "shared_tests_permission": 0,
+  "shared_interviews_permission": 0,
+  "shared_candidates_permission": 0,
+  "company_admin": false,
+  "team_admin": false,
+  "teams": [
+    {
+      "id": "09a38d2bd70a"
+    }
+  ]
+}
+RESPONSE SAMPLE
+{
+  "id": "jox1JH13",
+  "email": "mark@example.com",
+  "firstname": "Mark",
+  "lastname": "Peirson",
+  "country": "U.S.A.",
+  "role": "recruiter",
+  "status": "locked",
+  "phone": "+1-202-28490",
+  "timezone": "America/New_York",
+  "questions_permission": 0,
+  "tests_permission": 0,
+  "interviews_permission": 0,
+  "candidates_permission": 0,
+  "shared_questions_permission": 0,
+  "shared_tests_permission": 0,
+  "shared_interviews_permission": 0,
+  "shared_candidates_permission": 0,
+  "company_admin": false,
+  "team_admin": false,
+  "teams": [
+    "jia12KNa"
+  ],
+  "activated": false,
+  "last_activity_time": "2026-03-19T19:26:29+0000"
+}
+List all users
+GET	/x/api/v3/users?limit={limit}&offset={offset}
+
+Returns the list of your users.
+
+Parameters
+integer 
+
+Number of records to fetch
+
+integer 
+
+Offset of records
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "data": [
+    {
+      "id": "jox1JH13",
+      "email": "mark@example.com",
+      "firstname": "Mark",
+      "lastname": "Peirson",
+      "country": "U.S.A.",
+      "role": "recruiter",
+      "status": "locked",
+      "phone": "+1-202-28490",
+      "timezone": "America/New_York",
+      "questions_permission": 0,
+      "tests_permission": 0,
+      "interviews_permission": 0,
+      "candidates_permission": 0,
+      "shared_questions_permission": 0,
+      "shared_tests_permission": 0,
+      "shared_interviews_permission": 0,
+      "shared_candidates_permission": 0,
+      "company_admin": false,
+      "team_admin": false,
+      "teams": [
+        "jia12KNa"
+      ],
+      "activated": false,
+      "last_activity_time": "2026-03-19T19:26:29+0000"
+    }
+  ],
+  "page_total": 1,
+  "offset": 0,
+  "previous": "",
+  "next": "https://www.hackerrank.com/x/api/v3/users?limit=1&offset=1",
+  "first": "https://www.hackerrank.com/x/api/v3/users?limit=1&offset=0",
+  "last": "https://www.hackerrank.com/x/api/v3/users?limit=1&offset=12",
+  "total": 13
+}
+Retrieve user
+GET	/x/api/v3/users/{id}
+
+Retrieves the details of an existing user. You need only supply the unique customer identifier that was returned upon user creation.
+
+Parameters
+string 
+
+ID of user to retrieve
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "id": "jox1JH13",
+  "email": "mark@example.com",
+  "firstname": "Mark",
+  "lastname": "Peirson",
+  "country": "U.S.A.",
+  "role": "recruiter",
+  "status": "locked",
+  "phone": "+1-202-28490",
+  "timezone": "America/New_York",
+  "questions_permission": 0,
+  "tests_permission": 0,
+  "interviews_permission": 0,
+  "candidates_permission": 0,
+  "shared_questions_permission": 0,
+  "shared_tests_permission": 0,
+  "shared_interviews_permission": 0,
+  "shared_candidates_permission": 0,
+  "company_admin": false,
+  "team_admin": false,
+  "teams": [
+    "jia12KNa"
+  ],
+  "activated": false,
+  "last_activity_time": "2026-03-19T19:26:29+0000"
+}
+Update user
+PUT	/x/api/v3/users/{id}
+
+Updates the specified user by setting the values of the parameters passed. Any parameters not provided will be left unchanged. This request accepts mostly the same arguments as the user creation call.
+
+Parameters
+string 
+
+ID of user to update
+
+
+
+User 
+ARGUMENTS
+{}	User
+firstname
+string
+First name of user
+lastname
+string
+last name of user
+country
+string
+country of user
+role
+string
+When role is admin, it defaults to recruiter. Role of user
+Can be recruiter, developer, interviewer or admin
+phone
+string
+Phone number of the user
+questions_permission
+integer
+Whether user has permission to create questions
+Can be 0 or 3
+tests_permission
+integer
+Whether user has permission to create tests
+Can be 0 or 3
+interviews_permission
+integer
+Whether user has permission to create interviews
+Can be 0 or 3
+candidates_permission
+integer
+Whether user has permission to create candidates
+Can be 0 or 3
+shared_questions_permission
+integer
+Whether user has permission to view/edit/delete questions shared with it.
+Can be 0, 1, 2 or 3
+shared_tests_permission
+integer
+Whether user has permission to view/edit/delete tests shared with it.
+Can be 0, 1, 2 or 3
+shared_interviews_permission
+integer
+Whether user has permission to view/edit/delete interviews shared with it.
+Can be 0, 1, 2 or 3
+shared_candidates_permission
+integer
+Whether user has permission to view/edit/delete candidates shared with it.
+Can be 0, 1, 2 or 3
+company_admin
+boolean
+Whether the user is a company admin or not.
+team_admin
+boolean
+Whether the user is a team admin of the teams that it is a part of.
+REQUEST BODY SAMPLE
+{
+  "firstname": "Mark",
+  "lastname": "Peirson",
+  "country": "U.S.A.",
+  "role": "recruiter",
+  "phone": "+1-202-28490",
+  "questions_permission": 0,
+  "tests_permission": 0,
+  "interviews_permission": 0,
+  "candidates_permission": 0,
+  "shared_questions_permission": 0,
+  "shared_tests_permission": 0,
+  "shared_interviews_permission": 0,
+  "shared_candidates_permission": 0,
+  "company_admin": false,
+  "team_admin": false
+}
+Lock user
+DELETE	/x/api/v3/users/{id}
+
+Lock a user. This will also remove user from all the team that they are currently part of.
+
+Parameters
+string 
+
+ID of user to lock
+
+Response Messages
+204	User locked
+Search users
+GET	/x/api/v3/users/search?search={search_string}&limit={limit}&offset={offset}
+Parameters
+
+Name or email
+
+integer 
+
+Number of records to fetch
+
+integer 
+
+Offset of records
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "data": [
+    {
+      "id": "jox1JH13",
+      "email": "mark@example.com",
+      "firstname": "Mark",
+      "lastname": "Peirson",
+      "country": "U.S.A.",
+      "role": "recruiter",
+      "status": "locked",
+      "phone": "+1-202-28490",
+      "timezone": "America/New_York",
+      "questions_permission": 0,
+      "tests_permission": 0,
+      "interviews_permission": 0,
+      "candidates_permission": 0,
+      "shared_questions_permission": 0,
+      "shared_tests_permission": 0,
+      "shared_interviews_permission": 0,
+      "shared_candidates_permission": 0,
+      "company_admin": false,
+      "team_admin": false,
+      "teams": [
+        "jia12KNa"
+      ],
+      "activated": false,
+      "last_activity_time": "2026-03-19T19:26:29+0000"
+    }
+  ],
+  "page_total": 1,
+  "offset": 0,
+  "previous": "",
+  "next": "https://www.hackerrank.com/x/api/v3/users?limit=1&offset=1",
+  "first": "https://www.hackerrank.com/x/api/v3/users?limit=1&offset=0",
+  "last": "https://www.hackerrank.com/x/api/v3/users?limit=1&offset=12",
+  "total": 13
+}
+Team object
+
+You can manage teams in your company account using this API. Use teams to group users based on access control and permission groups.
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "id": "14bd8ec8b071",
+  "name": "Owners",
+  "created_at": "2026-03-19T19:26:29+0000",
+  "recruiter_count": 1,
+  "developer_count": 1,
+  "recruiter_cap": 3,
+  "developer_cap": 2,
+  "invite_as": "HackerRank Tech Team",
+  "locations": [
+    "New York",
+    "Boston"
+  ],
+  "departments": [
+    "HR",
+    "Technology"
+  ]
+}
+Create team
+POST	/x/api/v3/teams
+Parameters
+
+
+Team 
+ARGUMENTS
+{}	Team
+name
+string
+Name of the team
+recruiter_cap
+integer(optional)
+Limit of recruiters of this team
+developer_cap
+integer(optional)
+Limit of developers of this team
+invite_as
+string(optional)
+The display name for invite emails sent to candidates
+locations
+array[string](optional)
+Locations of this team
+departments
+array[string](optional)
+Departments of developers of this team
+RETURNS
+REQUEST BODY SAMPLE
+{
+  "name": "Owners",
+  "recruiter_cap": 3,
+  "developer_cap": 2,
+  "invite_as": "HackerRank Tech Team",
+  "locations": [
+    "New York",
+    "Boston"
+  ],
+  "departments": [
+    "HR",
+    "Technology"
+  ]
+}
+RESPONSE SAMPLE
+{
+  "id": "14bd8ec8b071",
+  "name": "Owners",
+  "owner": "fb0a3f2b430a",
+  "created_at": "2026-03-19T19:26:29+0000",
+  "recruiter_count": 1,
+  "developer_count": 1,
+  "recruiter_cap": 3,
+  "developer_cap": 2,
+  "invite_as": "HackerRank Tech Team",
+  "locations": [
+    "New York",
+    "Boston"
+  ],
+  "departments": [
+    "HR",
+    "Technology"
+  ]
+}
+List all teams
+GET	/x/api/v3/teams?limit={limit}&offset={offset}
+Parameters
+integer 
+
+Number of records to fetch
+
+integer 
+
+Offset of records
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "data": [
+    {
+      "id": "14bd8ec8b071",
+      "name": "Owners",
+      "owner": "fb0a3f2b430a",
+      "created_at": "2026-03-19T19:26:29+0000",
+      "recruiter_count": 1,
+      "developer_count": 1,
+      "recruiter_cap": 3,
+      "developer_cap": 2,
+      "invite_as": "HackerRank Tech Team",
+      "locations": [
+        "New York",
+        "Boston"
+      ],
+      "departments": [
+        "HR",
+        "Technology"
+      ]
+    }
+  ],
+  "page_total": 1,
+  "offset": 0,
+  "previous": "",
+  "next": "https://www.hackerrank.com/x/api/v3/teams?limit=1&offset=1",
+  "first": "https://www.hackerrank.com/x/api/v3/teams?limit=1&offset=0",
+  "last": "https://www.hackerrank.com/x/api/v3/teams?limit=1&offset=12",
+  "total": 13
+}
+Retrieve team
+GET	/x/api/v3/teams/{id}
+Parameters
+
+ID of the team to retrieve
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "id": "14bd8ec8b071",
+  "name": "Owners",
+  "owner": "fb0a3f2b430a",
+  "created_at": "2026-03-19T19:26:29+0000",
+  "recruiter_count": 1,
+  "developer_count": 1,
+  "recruiter_cap": 3,
+  "developer_cap": 2,
+  "invite_as": "HackerRank Tech Team",
+  "locations": [
+    "New York",
+    "Boston"
+  ],
+  "departments": [
+    "HR",
+    "Technology"
+  ]
+}
+Update team
+PUT	/x/api/v3/teams/{id}
+Parameters
+
+ID of the team to update
+
+
+
+Team 
+ARGUMENTS
+{}	Team
+name
+string
+Name of the team
+recruiter_cap
+integer
+Limit of recruiters of this team
+developer_cap
+integer
+Limit of developers of this team
+invite_as
+string
+The display name for invite emails sent to candidates
+locations
+array[string]
+Locations of this team
+departments
+array[string]
+Departments of developers of this team
+REQUEST BODY SAMPLE
+{
+  "name": "Owners",
+  "recruiter_cap": 3,
+  "developer_cap": 2,
+  "invite_as": "HackerRank Tech Team",
+  "locations": [
+    "New York",
+    "Boston"
+  ],
+  "departments": [
+    "HR",
+    "Technology"
+  ]
+}
+Deletes team
+DELETE	/x/api/v3/teams/{id}
+
+Deletes an empty team
+
+Parameters
+
+ID of the team to delete
+
+List all memberships
+GET	/x/api/v3/teams/{team_id}/users?limit={limit}&offset={offset}
+Parameters
+
+ID of the team to retrieve
+
+integer 
+
+Number of records to fetch
+
+integer 
+
+Offset of records
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "data": [
+    {
+      "team": "09a38d2bd70a",
+      "user": "01kmimas1"
+    }
+  ],
+  "page_total": 1,
+  "offset": 0,
+  "previous": "",
+  "next": "https://www.hackerrank.com/x/api/v3/teams/1/users?limit=1&offset=1",
+  "first": "https://www.hackerrank.com/x/api/v3/teams/1/users?limit=1&offset=0",
+  "last": "https://www.hackerrank.com/x/api/v3/teams/1/users?limit=1&offset=12",
+  "total": 13
+}
+Create membership
+POST	/x/api/v3/teams/{team_id}/users/{user_id}?license={license}
+Parameters
+
+ID of the team
+
+ID of the user
+
+License with which locked user gets unlocked. Pass this only if the user is locked. License can be recruiter, developer or interviewer
+
+Retrieve membership
+GET	/x/api/v3/teams/{team_id}/users/{user_id}
+Parameters
+
+ID of the team
+
+ID of the user
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "team": "09a38d2bd70a",
+  "user": "01kmimas1"
+}
+Removes membership
+DELETE	/x/api/v3/teams/{team_id}/users/{user_id}
+Parameters
+
+ID of the team
+
+ID of the user
+
+Response Messages
+204	User team membership removed
+Test object
+
+API allows you to perform CRUD actions on tests resource for your account. As of now, manupulation of questions is not supported in tests API.
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "id": "1PxfG1348",
+  "unique_id": "pxJk121",
+  "name": "Java Challenge",
+  "starttime": "2026-03-19T19:26:29+0000",
+  "endtime": "2026-03-26T19:26:29+0000",
+  "duration": 60,
+  "instructions": "<ul><li>Please take this challenge in a single sitting</li><li>All the best</li>",
+  "starred": true,
+  "created_at": "2026-03-19T19:26:29+0000",
+  "state": "active",
+  "locked": false,
+  "draft": true,
+  "languages": [
+    "java",
+    "cpp"
+  ],
+  "candidate_details": [
+    {
+      "predefined_label": "full_name",
+      "required": true
+    },
+    {
+      "predefined_label": "work_experience",
+      "required": true
+    }
+  ],
+  "custom_acknowledge_text": " I will not consult/copy code from any source including a website, book, or friend/colleague to complete these tests, though may refer language documentation or use an IDE that has code completion features.",
+  "cutoff_score": 85,
+  "master_password": null,
+  "hide_compile_test": null,
+  "tags": [
+    "Java",
+    "Hard",
+    "Senior"
+  ],
+  "role_ids": [
+    "e9861a782033"
+  ],
+  "experience": [
+    "New Graduate",
+    "0-2 years"
+  ],
+  "questions": null,
+  "sections": null,
+  "mcq_incorrect_score": -1,
+  "mcq_correct_score": 4,
+  "short_login_url": null,
+  "public_login_url": null,
+  "shuffle_questions": null,
+  "test_admins": null,
+  "hide_template": null,
+  "enable_acknowledgement": null,
+  "enable_proctoring": false,
+  "enable_advanced_proctoring": false,
+  "enable_secure_assessment_mode": false,
+  "enable_ml_plagiarism_analysis": false,
+  "enable_photo_identification": false,
+  "ide_config": "ide_and_git"
+}
+List all tests
+GET	/x/api/v3/tests?limit={limit}&offset={offset}
+Parameters
+integer 
+
+Number of records to fetch
+
+integer 
+
+Offset of records
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "data": [
+    {
+      "id": "1PxfG1348",
+      "unique_id": "pxJk121",
+      "name": "Java Challenge",
+      "starttime": "2026-03-19T19:26:29+0000",
+      "endtime": "2026-03-26T19:26:29+0000",
+      "duration": 60,
+      "owner": "p12xLmj23",
+      "instructions": "<ul><li>Please take this challenge in a single sitting</li><li>All the best</li>",
+      "starred": true,
+      "created_at": "2026-03-19T19:26:29+0000",
+      "state": "active",
+      "locked": false,
+      "draft": true,
+      "languages": [
+        "java",
+        "cpp"
+      ],
+      "candidate_details": [
+        {
+          "predefined_label": "full_name",
+          "required": true
+        },
+        {
+          "predefined_label": "work_experience",
+          "required": true
+        }
+      ],
+      "custom_acknowledge_text": " I will not consult/copy code from any source including a website, book, or friend/colleague to complete these tests, though may refer language documentation or use an IDE that has code completion features.",
+      "cutoff_score": 85,
+      "master_password": null,
+      "hide_compile_test": null,
+      "tags": [
+        "Java",
+        "Hard",
+        "Senior"
+      ],
+      "role_ids": [
+        "e9861a782033"
+      ],
+      "experience": [
+        "New Graduate",
+        "0-2 years"
+      ],
+      "questions": null,
+      "sections": null,
+      "mcq_incorrect_score": -1,
+      "mcq_correct_score": 4,
+      "locked_by": null,
+      "short_login_url": null,
+      "public_login_url": null,
+      "shuffle_questions": null,
+      "test_admins": null,
+      "hide_template": null,
+      "enable_acknowledgement": null,
+      "enable_proctoring": false,
+      "enable_advanced_proctoring": false,
+      "enable_secure_assessment_mode": false,
+      "enable_ml_plagiarism_analysis": false,
+      "enable_photo_identification": false,
+      "ide_config": "ide_and_git"
+    }
+  ],
+  "page_total": 1,
+  "offset": 0,
+  "previous": "",
+  "next": "https://www.hackerrank.com/x/api/v3/tests?limit=1&offset=1",
+  "first": "https://www.hackerrank.com/x/api/v3/tests?limit=1&offset=0",
+  "last": "https://www.hackerrank.com/x/api/v3/tests?limit=1&offset=12",
+  "total": 13
+}
+Create test
+POST	/x/api/v3/tests
+Parameters
+
+
+Tests 
+ARGUMENTS
+{}	Tests
+name
+string
+Name of the test.
+starttime
+datetime(optional)
+If set, then logins before this time will be disabled. Candidates already logged in will not be affected.
+endtime
+datetime(optional)
+If set, then logins after this time will be disabled. Candidates who are already logged in will be able to give the test normally even after endtime.
+duration
+integer
+Duration of test in minutes.
+instructions
+string(optional)
+HTML for instructions displayed to candidate in the test login page.
+locked
+boolean(optional)
+Whether this test is locked or not. Locked test cannot be edited, however candidates can be invited to the test.
+draft
+boolean(optional)
+Describes if this test is currently in Draft(true)/Published(false) state. Candidates can only be invited for published tests.
+Can be true or false
+languages
+array[string](optional)
+List of languages available in the test for coding and approximate questions. Note: *null* in this fields means that all languages are enabled
+candidate_details
+array[string](optional)
+List of details that candidates will be asked to enter before logging into the test. These details will be available in the report view of the test. It should be an Array of JSON.
+
+List of default fields:[full_name, city, work_experience, roll_number, email_address, year_of_graduation, cgpa, univ, phone_number, contact_recruiter, branch, gender, degree, role, resume, pgdegree, city_graduation, gpa, major, linkedin]
+For default fields add field in following way {predefined_label: 'roll_number', required: true} in the array.
+
+If you want to add another field to candidate_details not present in default list, you can add in the following way:
+{title: 'First Name', required: true, type: 'input'}. Following are the supported input types: [input, select, radio, checkbox, file]
+
+In case of input being select, you can send options for select in following way: {title: 'Age', required: true, type: 'select', options: ['<20', '20-30', '>30']}
+
+Order of candidate_details will be same as order of array
+custom_acknowledge_text
+string(optional)
+Candidate will be asked to agree to this text before logging into the test.
+cutoff_score
+integer(optional)
+If set, then candidates scoring equal or more than this value will automatically be placed into "Qualified" bucket, while candidates scoring less will be placed in "Failed" bucket
+master_password
+string(optional)
+If set, candidates can login to the test using this password
+hide_compile_test
+boolean(optional)
+If set to true then candidate will not be able to see compile button for coding and approximate type questions.
+tags
+array[string](optional)
+List of tags associated with this test
+role_ids
+array[string]
+List of role ids associated with this test.
+experience
+array[string]
+Experience levels associated with this test.
+Can be Intern, New Graduate, 0-2 years, 2-5 years, >5 years or All Experience Levels
+questions
+array[string](optional)
+List of question ids associated with this test.
+mcq_incorrect_score
+integer(optional)
+Score to deduct from total score per incorect MCQ question
+mcq_correct_score
+integer(optional)
+Score to add to total score per correct MCQ question
+shuffle_questions
+boolean(optional)
+If true than questions will be shuffled
+test_admins
+array[string](optional)
+Test admins will also receive summary report mails when candidate completes a test.
+hide_template
+boolean(optional)
+If set to true then head and tail templates will not be shown to candidates.
+enable_acknowledgement
+boolean(optional)
+If set to false, then candidate will not be asked to agree to acknowledgement text.
+enable_proctoring
+boolean(optional)
+If set to true, then this will force the candidate to turn their webcam on before starting the Test.We will take snapshots periodically during the Test, and you can view them in the Candidate's report.This corresponds to Image Proctoring setting under Integrity settings of a test
+By default this field is set to false.
+enable_advanced_proctoring
+boolean(optional)
+If set to true, candidate webcam photos are analyzed using AI to detect suspicious activity.We will take snapshots periodically during the Test, and you can view them in the Candidate's report.This corresponds to Image analysis setting under Integrity settings of a test
+By default this field is set to false.
+enable_secure_assessment_mode
+boolean(optional)
+If set to true, then this will enable secure mode for the test.This corresponds to Secure mode setting under Integrity settings of a test
+By default this field is set to false.
+enable_ml_plagiarism_analysis
+boolean(optional)
+If set to true, this detects whether a candidate has received help from an external source.This corresponds to AI Plagiarism setting under Integrity settings of a test
+By default this field is set to false.
+enable_photo_identification
+boolean(optional)
+If set to true, this requires candidates to take a photo before starting the test.This corresponds to Photo Identification setting under Integrity settings of a test
+By default this field is set to false.
+ide_config
+string(optional)
+Configure IDE for candidates to solve Front-end, Back-end, and Full-stack questions.
+Default is set to ide.
+Can be ide_and_git, ide or git
+RETURNS
+REQUEST BODY SAMPLE
+{
+  "name": "Java Challenge",
+  "starttime": "2026-03-19T19:26:29+00:00",
+  "endtime": "2026-03-26T19:26:29+00:00",
+  "duration": 60,
+  "instructions": "<ul><li>Please take this challenge in a single sitting</li><li>All the best</li>",
+  "locked": false,
+  "draft": true,
+  "languages": [
+    "java",
+    "cpp"
+  ],
+  "candidate_details": [
+    {
+      "predefined_label": "full_name",
+      "required": true
+    },
+    {
+      "predefined_label": "work_experience",
+      "required": true
+    }
+  ],
+  "custom_acknowledge_text": " I will not consult/copy code from any source including a website, book, or friend/colleague to complete these tests, though may refer language documentation or use an IDE that has code completion features.",
+  "cutoff_score": 85,
+  "master_password": null,
+  "hide_compile_test": null,
+  "tags": [
+    "Java",
+    "Hard",
+    "Senior"
+  ],
+  "role_ids": [
+    "e9861a782033"
+  ],
+  "experience": [
+    "New Graduate",
+    "0-2 years"
+  ],
+  "questions": null,
+  "mcq_incorrect_score": -1,
+  "mcq_correct_score": 4,
+  "shuffle_questions": null,
+  "test_admins": null,
+  "hide_template": null,
+  "enable_acknowledgement": null,
+  "enable_proctoring": false,
+  "enable_advanced_proctoring": false,
+  "enable_secure_assessment_mode": false,
+  "enable_ml_plagiarism_analysis": false,
+  "enable_photo_identification": false,
+  "ide_config": "ide_and_git"
+}
+RESPONSE SAMPLE
+{
+  "id": "1PxfG1348",
+  "unique_id": "pxJk121",
+  "name": "Java Challenge",
+  "starttime": "2026-03-19T19:26:29+0000",
+  "endtime": "2026-03-26T19:26:29+0000",
+  "duration": 60,
+  "owner": "p12xLmj23",
+  "instructions": "<ul><li>Please take this challenge in a single sitting</li><li>All the best</li>",
+  "starred": true,
+  "created_at": "2026-03-19T19:26:29+0000",
+  "state": "active",
+  "locked": false,
+  "draft": true,
+  "languages": [
+    "java",
+    "cpp"
+  ],
+  "candidate_details": [
+    {
+      "predefined_label": "full_name",
+      "required": true
+    },
+    {
+      "predefined_label": "work_experience",
+      "required": true
+    }
+  ],
+  "custom_acknowledge_text": " I will not consult/copy code from any source including a website, book, or friend/colleague to complete these tests, though may refer language documentation or use an IDE that has code completion features.",
+  "cutoff_score": 85,
+  "master_password": null,
+  "hide_compile_test": null,
+  "tags": [
+    "Java",
+    "Hard",
+    "Senior"
+  ],
+  "role_ids": [
+    "e9861a782033"
+  ],
+  "experience": [
+    "New Graduate",
+    "0-2 years"
+  ],
+  "questions": null,
+  "sections": null,
+  "mcq_incorrect_score": -1,
+  "mcq_correct_score": 4,
+  "locked_by": null,
+  "short_login_url": null,
+  "public_login_url": null,
+  "shuffle_questions": null,
+  "test_admins": null,
+  "hide_template": null,
+  "enable_acknowledgement": null,
+  "enable_proctoring": false,
+  "enable_advanced_proctoring": false,
+  "enable_secure_assessment_mode": false,
+  "enable_ml_plagiarism_analysis": false,
+  "enable_photo_identification": false,
+  "ide_config": "ide_and_git"
+}
+Retrieve test
+GET	/x/api/v3/tests/{id}?additional_fields={additional_fields}
+Parameters
+
+ID of the Test
+
+Supported test fields to get detailed info on those fields (Comma separated field names). Following fields are supported:
+
+    languages, candidate_details, custom_acknowledge_text, cutoff_score, cutoff_score_percentage, candidate_max_score, master_password, hide_compile_test, mcq_incorrect_score, mcq_correct_score, locked_by, secure, short_login_url, public_login_url, shuffle_questions, test_admins, hide_template, enable_acknowledgement, experience, job_roles, invited, in_progress, to_evaluate, qualified, failed, completed, questions_count, predefined, draft, ddna_star_rating_enabled, ats_id, ats_job, ats_perform_as, block_publish, blocked_by_library_access, max_score, public_url, role_ids, enable_proctoring, candidate_tab_switch, track_editor_paste, parent_id, hr_certified, disable_leakage_protection, ai_proctor_frozen_flag, enable_ai_proctor, enable_live_face_detection, enable_candidate_screenshare, enable_hackerrank_app, enable_ai_evaluation, enable_ai_assisted_test, updated_at, sections_data
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "id": "1PxfG1348",
+  "unique_id": "pxJk121",
+  "name": "Java Challenge",
+  "starttime": "2026-03-19T19:26:29+0000",
+  "endtime": "2026-03-26T19:26:29+0000",
+  "duration": 60,
+  "owner": "p12xLmj23",
+  "instructions": "<ul><li>Please take this challenge in a single sitting</li><li>All the best</li>",
+  "starred": true,
+  "created_at": "2026-03-19T19:26:29+0000",
+  "state": "active",
+  "locked": false,
+  "draft": true,
+  "languages": [
+    "java",
+    "cpp"
+  ],
+  "candidate_details": [
+    {
+      "predefined_label": "full_name",
+      "required": true
+    },
+    {
+      "predefined_label": "work_experience",
+      "required": true
+    }
+  ],
+  "custom_acknowledge_text": " I will not consult/copy code from any source including a website, book, or friend/colleague to complete these tests, though may refer language documentation or use an IDE that has code completion features.",
+  "cutoff_score": 85,
+  "master_password": null,
+  "hide_compile_test": null,
+  "tags": [
+    "Java",
+    "Hard",
+    "Senior"
+  ],
+  "role_ids": [
+    "e9861a782033"
+  ],
+  "experience": [
+    "New Graduate",
+    "0-2 years"
+  ],
+  "questions": null,
+  "sections": null,
+  "mcq_incorrect_score": -1,
+  "mcq_correct_score": 4,
+  "locked_by": null,
+  "short_login_url": null,
+  "public_login_url": null,
+  "shuffle_questions": null,
+  "test_admins": null,
+  "hide_template": null,
+  "enable_acknowledgement": null,
+  "enable_proctoring": false,
+  "enable_advanced_proctoring": false,
+  "enable_secure_assessment_mode": false,
+  "enable_ml_plagiarism_analysis": false,
+  "enable_photo_identification": false,
+  "ide_config": "ide_and_git"
+}
+Update test
+PUT	/x/api/v3/tests/{id}
+Parameters
+
+ID of the Test
+
+
+
+Tests 
+ARGUMENTS
+{}	Tests
+name
+string
+Name of the test.
+starttime
+datetime
+If set, then logins before this time will be disabled. Candidates already logged in will not be affected.
+endtime
+datetime
+If set, then logins after this time will be disabled. Candidates who are already logged in will be able to give the test normally even after endtime.
+duration
+integer
+Duration of test in minutes.
+instructions
+string
+HTML for instructions displayed to candidate in the test login page.
+locked
+boolean
+Whether this test is locked or not. Locked test cannot be edited, however candidates can be invited to the test.
+draft
+boolean
+Describes if this test is currently in Draft(true)/Published(false) state. Candidates can only be invited for published tests.
+Can be true or false
+languages
+array[string]
+List of languages available in the test for coding and approximate questions. Note: *null* in this fields means that all languages are enabled
+candidate_details
+array[string]
+List of details that candidates will be asked to enter before logging into the test. These details will be available in the report view of the test. It should be an Array of JSON.
+
+List of default fields:[full_name, city, work_experience, roll_number, email_address, year_of_graduation, cgpa, univ, phone_number, contact_recruiter, branch, gender, degree, role, resume, pgdegree, city_graduation, gpa, major, linkedin]
+For default fields add field in following way {predefined_label: 'roll_number', required: true} in the array.
+
+If you want to add another field to candidate_details not present in default list, you can add in the following way:
+{title: 'First Name', required: true, type: 'input'}. Following are the supported input types: [input, select, radio, checkbox, file]
+
+In case of input being select, you can send options for select in following way: {title: 'Age', required: true, type: 'select', options: ['<20', '20-30', '>30']}
+
+Order of candidate_details will be same as order of array
+custom_acknowledge_text
+string
+Candidate will be asked to agree to this text before logging into the test.
+cutoff_score
+integer
+If set, then candidates scoring equal or more than this value will automatically be placed into "Qualified" bucket, while candidates scoring less will be placed in "Failed" bucket
+master_password
+string
+If set, candidates can login to the test using this password
+hide_compile_test
+boolean
+If set to true then candidate will not be able to see compile button for coding and approximate type questions.
+tags
+array[string]
+List of tags associated with this test
+role_ids
+array[string]
+List of role ids associated with this test.
+experience
+array[string]
+Experience levels associated with this test.
+Can be Intern, New Graduate, 0-2 years, 2-5 years, >5 years or All Experience Levels
+questions
+array[string]
+List of question ids associated with this test.
+mcq_incorrect_score
+integer
+Score to deduct from total score per incorect MCQ question
+mcq_correct_score
+integer
+Score to add to total score per correct MCQ question
+shuffle_questions
+boolean
+If true than questions will be shuffled
+test_admins
+array[string]
+Test admins will also receive summary report mails when candidate completes a test.
+hide_template
+boolean
+If set to true then head and tail templates will not be shown to candidates.
+enable_acknowledgement
+boolean
+If set to false, then candidate will not be asked to agree to acknowledgement text.
+enable_proctoring
+boolean
+If set to true, then this will force the candidate to turn their webcam on before starting the Test.We will take snapshots periodically during the Test, and you can view them in the Candidate's report.This corresponds to Image Proctoring setting under Integrity settings of a test
+By default this field is set to false.
+enable_advanced_proctoring
+boolean
+If set to true, candidate webcam photos are analyzed using AI to detect suspicious activity.We will take snapshots periodically during the Test, and you can view them in the Candidate's report.This corresponds to Image analysis setting under Integrity settings of a test
+By default this field is set to false.
+enable_secure_assessment_mode
+boolean
+If set to true, then this will enable secure mode for the test.This corresponds to Secure mode setting under Integrity settings of a test
+By default this field is set to false.
+enable_ml_plagiarism_analysis
+boolean
+If set to true, this detects whether a candidate has received help from an external source.This corresponds to AI Plagiarism setting under Integrity settings of a test
+By default this field is set to false.
+enable_photo_identification
+boolean
+If set to true, this requires candidates to take a photo before starting the test.This corresponds to Photo Identification setting under Integrity settings of a test
+By default this field is set to false.
+ide_config
+string
+Configure IDE for candidates to solve Front-end, Back-end, and Full-stack questions.
+Default is set to ide.
+Can be ide_and_git, ide or git
+REQUEST BODY SAMPLE
+{
+  "name": "Java Challenge",
+  "starttime": "2026-03-19T19:26:29+00:00",
+  "endtime": "2026-03-26T19:26:29+00:00",
+  "duration": 60,
+  "instructions": "<ul><li>Please take this challenge in a single sitting</li><li>All the best</li>",
+  "locked": false,
+  "draft": true,
+  "languages": [
+    "java",
+    "cpp"
+  ],
+  "candidate_details": [
+    {
+      "predefined_label": "full_name",
+      "required": true
+    },
+    {
+      "predefined_label": "work_experience",
+      "required": true
+    }
+  ],
+  "custom_acknowledge_text": " I will not consult/copy code from any source including a website, book, or friend/colleague to complete these tests, though may refer language documentation or use an IDE that has code completion features.",
+  "cutoff_score": 85,
+  "master_password": null,
+  "hide_compile_test": null,
+  "tags": [
+    "Java",
+    "Hard",
+    "Senior"
+  ],
+  "role_ids": [
+    "e9861a782033"
+  ],
+  "experience": [
+    "New Graduate",
+    "0-2 years"
+  ],
+  "questions": null,
+  "mcq_incorrect_score": -1,
+  "mcq_correct_score": 4,
+  "shuffle_questions": null,
+  "test_admins": null,
+  "hide_template": null,
+  "enable_acknowledgement": null,
+  "enable_proctoring": false,
+  "enable_advanced_proctoring": false,
+  "enable_secure_assessment_mode": false,
+  "enable_ml_plagiarism_analysis": false,
+  "enable_photo_identification": false,
+  "ide_config": "ide_and_git"
+}
+Deletes test
+DELETE	/x/api/v3/tests/{id}
+Parameters
+
+ID of the test
+
+Response Messages
+204	Test Deleted
+Archives test
+POST	/x/api/v3/tests/{id}/archive
+Parameters
+
+ID of the test
+
+Response Messages
+204	Test Archived
+List all inviters for a test
+GET	/x/api/v3/tests/{id}/inviters
+Parameters
+
+ID of the test
+
+integer 
+
+Number of records to fetch
+
+integer 
+
+Offset of records
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "data": [
+    {
+      "id": "jox1JH13",
+      "email": "mark@example.com",
+      "firstname": "Mark",
+      "lastname": "Peirson",
+      "role": "recruiter",
+      "status": "locked",
+      "phone": "+1-202-28490",
+      "timezone": "America/New_York",
+      "questions_permission": 0,
+      "tests_permission": 0,
+      "interviews_permission": 0,
+      "candidates_permission": 0,
+      "teams": [
+        "jia12KNa"
+      ],
+      "candidates_invited": 1,
+      "activated": false
+    }
+  ],
+  "page_total": 1,
+  "offset": 0,
+  "previous": "",
+  "next": "https://www.hackerrank.com/x/api/v3/users?limit=1&offset=1",
+  "first": "https://www.hackerrank.com/x/api/v3/users?limit=1&offset=0",
+  "last": "https://www.hackerrank.com/x/api/v3/users?limit=1&offset=12",
+  "total": 13
+}
+Test Candidate object
+
+This object represents candidate that are invited or have attempted a test (or both). As such, a candidate object always exists in context of test.
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "id": "98Sjnbj12",
+  "full_name": "Alice Wonders",
+  "email": "alice.wonders@email.com",
+  "score": 32.5,
+  "attempt_starttime": "2016-05-24T06:27:25+0000",
+  "attempt_endtime": "2016-05-24T11:57:25+0000",
+  "attempt_events": null,
+  "status": -1,
+  "ats_state": 0,
+  "integrity_status": null,
+  "integrity_summary": null,
+  "invite_email_done": true,
+  "invite_valid": true,
+  "invited_on": "2016-05-14T11:57:25+0000",
+  "invite_valid_from": "2026-03-18T19:26:29+0000",
+  "invite_valid_to": "2026-03-19T19:26:29+0000",
+  "invite_link": "hackerrank.com/test/sample/auth_string",
+  "invite_metadata": {
+    "ats_candidate_id": 1
+  },
+  "subject": null,
+  "message": null,
+  "template": null,
+  "evaluator_email": null,
+  "test_finish_url": null,
+  "test_result_url": null,
+  "webhook_authentication": null,
+  "accept_result_updates": false,
+  "send_email": true,
+  "tags": [
+    "Java",
+    "Hard",
+    "Senior"
+  ],
+  "force": null,
+  "force_reattempt": null,
+  "accommodations": null,
+  "report_url": "https://www.hackerrank.com/x/tests/p132983al/candidates/8Sjnbj12/report",
+  "authenticated_report_url": "https://www.hackerrank.com/x/tests/p132983al/candidates/8Sjnbj12/report?authkey=123abc",
+  "pdf_url": "https://www.hackerrank.com/x/tests/p132983al/candidates/8Sjnbj12/pdf",
+  "scores_tags_split": {
+    "Java": 20,
+    "Hard": 2,
+    "Senior": 10
+  },
+  "scores_skills_split": {
+    "Problem Solving (Basic)": 100,
+    ".NET (Intermediate)": 0
+  },
+  "added_time": 0,
+  "unclaimed_added_time": 0,
+  "comments": null,
+  "performance_summary": null,
+  "ip_address": null,
+  "plagiarism": null,
+  "plagiarism_status": null,
+  "max_code_similarity": null,
+  "feedback": "Nice experience",
+  "percentage_score": 50,
+  "candidate_details": [
+    {
+      "field_name": "year_of_graduation",
+      "title": "Year of graduation",
+      "value": "2015"
+    }
+  ],
+  "out_of_window_events": 0,
+  "out_of_window_duration": 0,
+  "editor_paste_count": 0,
+  "proctor_images": []
+}
+List all candidates
+GET	/x/api/v3/tests/{test_id}/candidates?limit={limit}&offset={offset}
+Parameters
+
+ID of the test
+
+integer 
+
+Number of records to fetch
+
+integer 
+
+Offset of records
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "data": [
+    {
+      "id": "98Sjnbj12",
+      "full_name": "Alice Wonders",
+      "email": "alice.wonders@email.com",
+      "score": 32.5,
+      "test": "p132983al",
+      "user": "1ok2njXJi",
+      "attempt_starttime": "2016-05-24T06:27:25+0000",
+      "attempt_endtime": "2016-05-24T11:57:25+0000",
+      "attempt_events": null,
+      "status": -1,
+      "ats_state": 0,
+      "integrity_status": null,
+      "integrity_summary": null,
+      "invite_email_done": true,
+      "invite_valid": true,
+      "invited_on": "2016-05-14T11:57:25+0000",
+      "invite_valid_from": "2026-03-18T19:26:29+0000",
+      "invite_valid_to": "2026-03-19T19:26:29+0000",
+      "invite_link": "hackerrank.com/test/sample/auth_string",
+      "invite_metadata": {
+        "ats_candidate_id": 1
+      },
+      "evaluator_email": null,
+      "test_finish_url": null,
+      "test_result_url": null,
+      "accept_result_updates": false,
+      "tags": [
+        "Java",
+        "Hard",
+        "Senior"
+      ],
+      "report_url": "https://www.hackerrank.com/x/tests/p132983al/candidates/8Sjnbj12/report",
+      "authenticated_report_url": "https://www.hackerrank.com/x/tests/p132983al/candidates/8Sjnbj12/report?authkey=123abc",
+      "pdf_url": "https://www.hackerrank.com/x/tests/p132983al/candidates/8Sjnbj12/pdf",
+      "scores_tags_split": {
+        "Java": 20,
+        "Hard": 2,
+        "Senior": 10
+      },
+      "scores_skills_split": {
+        "Problem Solving (Basic)": 100,
+        ".NET (Intermediate)": 0
+      },
+      "added_time": 0,
+      "unclaimed_added_time": 0,
+      "comments": null,
+      "performance_summary": null,
+      "ip_address": null,
+      "questions": {
+        "score": 5,
+        "answered": true,
+        "answer": "",
+        "name": "",
+        "preview": ""
+      },
+      "plagiarism": null,
+      "plagiarism_status": null,
+      "max_code_similarity": null,
+      "feedback": "Nice experience",
+      "percentage_score": 50,
+      "candidate_details": [
+        {
+          "field_name": "year_of_graduation",
+          "title": "Year of graduation",
+          "value": "2015"
+        }
+      ],
+      "out_of_window_events": 0,
+      "out_of_window_duration": 0,
+      "editor_paste_count": 0,
+      "proctor_images": []
+    }
+  ],
+  "page_total": 1,
+  "offset": 0,
+  "previous": "",
+  "next": "https://www.hackerrank.com/x/api/v3/tests/1/candidates?limit=1&offset=1",
+  "first": "https://www.hackerrank.com/x/api/v3/tests/1/candidates?limit=1&offset=0",
+  "last": "https://www.hackerrank.com/x/api/v3/tests/1/candidates?limit=1&offset=12",
+  "total": 13
+}
+Invite candidate
+POST	/x/api/v3/tests/{test_id}/candidates
+
+Invites a single candidate to the test. Note: Multiple invitations are not supported through this endpoint.
+
+Parameters
+
+ID of the test
+
+
+
+TestCandidate 
+ARGUMENTS
+{}	TestCandidate
+full_name
+string(optional)
+Full name of the candidate.
+email
+string
+Email address of the candidate.
+ats_state
+integer(optional)
+This indicates the current state of the candidate application. Value can be from 0 to 22.
+invite_valid_from
+datetime(optional)
+Time from when invite for this test candidate is valid. Null value in this field indicates that invite is permanently valid.
+invite_valid_to
+datetime(optional)
+Time till when invite for this test candidate is valid. Null value in this field indicates that invite is permanently valid.
+invite_metadata
+object(optional)
+Customizable metadata that can be set for a candidate. This must be a valid JSON object.
+subject
+string(optional)
+Subject of the candidate invite mail.
+message
+string(optional)
+Custom message that will be prepended to the candidate invite mail body.
+template
+string(optional)
+ID of the template to be used for inviting candidate.
+evaluator_email
+string(optional)
+Email address of the evaluator, if different from the test admins and owner.
+test_finish_url
+string(optional)
+Candidate will be redirected to this URL when the test gets over. By default, they are sent to the feedback page.
+test_result_url
+string(optional)
+Webhook URL for candidate report. When the report is processed the report data will be sent to this URL as a webhook. By default, the inviter will get the report by email.
+webhook_authentication
+WebhookAuthentication(optional)
+Authentication configuration for the webhook URL. Required when test_result_url is provided.
+accept_result_updates
+boolean(optional)
+Flag to send score and status updates to the test_result_url. Please set to "true" if you accept updates. Default is "false".
+send_email
+boolean(optional)
+Flag to send the invite email to the candidate. By default this flag is "false" and email would not be sent. In order to send invite emails please pass this parameter with value "true"
+tags
+array[string](optional)
+List of tags associated with this candidate.
+force
+boolean(optional)
+Flag which forces sending an email even when the candidate has already been invited.
+force_reattempt
+boolean(optional)
+Force re-invite even when the candidate has already attempted the test.
+accommodations
+CandidateAccommodations(optional)
+Object containing candidate accommodations.
+{}	WebhookAuthentication
+type
+string
+Type of authentication to use for the webhook.
+Can be bearer_token or basic_auth
+data
+Inline Model 1
+Authentication data based on the type. For bearer_token, provide {token: "string"}. For basic_auth, provide {username: "string", password: "string"}.
+{}	CandidateAccommodations
+additional_time_percent
+integer(optional)
+A percentage of the test duration to be added as additional time. Value must be greater than 0.
+{}	Inline Model 1
+token
+string(optional)
+Bearer token for authentication. Required when type is "bearer_token".
+username
+string(optional)
+Username for basic authentication. Required when type is "basic_auth".
+password
+string(optional)
+Password for basic authentication. Required when type is "basic_auth".
+RETURNS
+REQUEST BODY SAMPLE
+{
+  "full_name": "Alice Wonders",
+  "email": "alice.wonders@email.com",
+  "ats_state": 0,
+  "invite_valid_from": "2026-03-18T19:26:29+00:00",
+  "invite_valid_to": "2026-03-19T19:26:29+00:00",
+  "invite_metadata": {
+    "ats_candidate_id": 1
+  },
+  "subject": null,
+  "message": null,
+  "template": null,
+  "evaluator_email": null,
+  "test_finish_url": null,
+  "test_result_url": null,
+  "webhook_authentication": {
+    "type": "bearer_token",
+    "data": {
+      "token": "string"
+    }
+  },
+  "accept_result_updates": false,
+  "send_email": true,
+  "tags": [
+    "Java",
+    "Hard",
+    "Senior"
+  ],
+  "force": null,
+  "force_reattempt": null,
+  "accommodations": {
+    "additional_time_percent": 25
+  }
+}
+RESPONSE SAMPLE
+{
+  "test_link": "https://www.hackerrank.com/tests/bdsiod7sd22/login?b=efJ1c2VybmFtZSI6ImRhbm55LnBldGVyc29uQGhff2tlcnJhbmsuY19tIiwidGFzc3dvcmQiOiI0ZTQ4OWJjNSIsImhpZGUiOnRydWV9",
+  "email": "alice.wonders@email.com",
+  "id": "10000"
+}
+Show candidate
+GET	/x/api/v3/tests/{test_id}/candidates/{candidate_id}?additional_fields={additional_fields}
+Parameters
+
+ID of the test
+
+ID of the candidate
+
+Supported test candidate fields to get detailed info on those fields (Comma separated field names). For eg: 'questions,scores_sections_split'. This is used to get detailed information on the supported test candidate fields. Some supported fields are : 'questions' to get score details on each question, 'scores_sections_split' to get info on each test section, 'user' to get user details, 'test' to get test details, etc
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "id": "98Sjnbj12",
+  "full_name": "Alice Wonders",
+  "email": "alice.wonders@email.com",
+  "score": 32.5,
+  "test": "p132983al",
+  "user": "1ok2njXJi",
+  "attempt_starttime": "2016-05-24T06:27:25+0000",
+  "attempt_endtime": "2016-05-24T11:57:25+0000",
+  "attempt_events": null,
+  "status": -1,
+  "ats_state": 0,
+  "integrity_status": null,
+  "integrity_summary": null,
+  "invite_email_done": true,
+  "invite_valid": true,
+  "invited_on": "2016-05-14T11:57:25+0000",
+  "invite_valid_from": "2026-03-18T19:26:29+0000",
+  "invite_valid_to": "2026-03-19T19:26:29+0000",
+  "invite_link": "hackerrank.com/test/sample/auth_string",
+  "invite_metadata": {
+    "ats_candidate_id": 1
+  },
+  "evaluator_email": null,
+  "test_finish_url": null,
+  "test_result_url": null,
+  "accept_result_updates": false,
+  "tags": [
+    "Java",
+    "Hard",
+    "Senior"
+  ],
+  "report_url": "https://www.hackerrank.com/x/tests/p132983al/candidates/8Sjnbj12/report",
+  "authenticated_report_url": "https://www.hackerrank.com/x/tests/p132983al/candidates/8Sjnbj12/report?authkey=123abc",
+  "pdf_url": "https://www.hackerrank.com/x/tests/p132983al/candidates/8Sjnbj12/pdf",
+  "scores_tags_split": {
+    "Java": 20,
+    "Hard": 2,
+    "Senior": 10
+  },
+  "scores_skills_split": {
+    "Problem Solving (Basic)": 100,
+    ".NET (Intermediate)": 0
+  },
+  "added_time": 0,
+  "unclaimed_added_time": 0,
+  "comments": null,
+  "performance_summary": null,
+  "ip_address": null,
+  "questions": {
+    "score": 5,
+    "answered": true,
+    "answer": "",
+    "name": "",
+    "preview": ""
+  },
+  "plagiarism": null,
+  "plagiarism_status": null,
+  "max_code_similarity": null,
+  "feedback": "Nice experience",
+  "percentage_score": 50,
+  "candidate_details": [
+    {
+      "field_name": "year_of_graduation",
+      "title": "Year of graduation",
+      "value": "2015"
+    }
+  ],
+  "out_of_window_events": 0,
+  "out_of_window_duration": 0,
+  "editor_paste_count": 0,
+  "proctor_images": []
+}
+Update candidate
+PUT	/x/api/v3/tests/{test_id}/candidates/{candidate_id}
+Parameters
+
+ID of the test
+
+ID of the candidate
+
+
+
+TestCandidate 
+ARGUMENTS
+{}	TestCandidate
+full_name
+string
+Full name of the candidate.
+ats_state
+integer
+This indicates the current state of the candidate application. Value can be from 0 to 22.
+invite_valid_from
+datetime
+Time from when invite for this test candidate is valid. Null value in this field indicates that invite is permanently valid.
+invite_valid_to
+datetime
+Time till when invite for this test candidate is valid. Null value in this field indicates that invite is permanently valid.
+invite_metadata
+object
+Customizable metadata that can be set for a candidate. This must be a valid JSON object.
+evaluator_email
+string
+Email address of the evaluator, if different from the test admins and owner.
+test_finish_url
+string
+Candidate will be redirected to this URL when the test gets over. By default, they are sent to the feedback page.
+test_result_url
+string
+Webhook URL for candidate report. When the report is processed the report data will be sent to this URL as a webhook. By default, the inviter will get the report by email.
+webhook_authentication
+WebhookAuthentication
+Authentication configuration for the webhook URL. Required when test_result_url is provided.
+accept_result_updates
+boolean
+Flag to send score and status updates to the test_result_url. Please set to "true" if you accept updates. Default is "false".
+tags
+array[string]
+List of tags associated with this candidate.
+accommodations
+object
+Object containing candidate accommodations.
+{}	WebhookAuthentication
+type
+string
+Type of authentication to use for the webhook.
+Can be bearer_token or basic_auth
+data
+Inline Model 1
+Authentication data based on the type. For bearer_token, provide {token: "string"}. For basic_auth, provide {username: "string", password: "string"}.
+{}	Inline Model 1
+token
+string(optional)
+Bearer token for authentication. Required when type is "bearer_token".
+username
+string(optional)
+Username for basic authentication. Required when type is "basic_auth".
+password
+string(optional)
+Password for basic authentication. Required when type is "basic_auth".
+RETURNS
+REQUEST BODY SAMPLE
+{
+  "full_name": "Alice Wonders",
+  "ats_state": 0,
+  "invite_valid_from": "2026-03-18T19:26:29+00:00",
+  "invite_valid_to": "2026-03-19T19:26:29+00:00",
+  "invite_metadata": {
+    "ats_candidate_id": 1
+  },
+  "evaluator_email": null,
+  "test_finish_url": null,
+  "test_result_url": null,
+  "webhook_authentication": {
+    "type": "bearer_token",
+    "data": {
+      "token": "string"
+    }
+  },
+  "accept_result_updates": false,
+  "tags": [
+    "Java",
+    "Hard",
+    "Senior"
+  ],
+  "accommodations": null
+}
+RESPONSE SAMPLE
+{
+  "id": "98Sjnbj12",
+  "full_name": "Alice Wonders",
+  "email": "alice.wonders@email.com",
+  "score": 32.5,
+  "test": "p132983al",
+  "user": "1ok2njXJi",
+  "attempt_starttime": "2016-05-24T06:27:25+0000",
+  "attempt_endtime": "2016-05-24T11:57:25+0000",
+  "attempt_events": null,
+  "status": -1,
+  "ats_state": 0,
+  "integrity_status": null,
+  "integrity_summary": null,
+  "invite_email_done": true,
+  "invite_valid": true,
+  "invited_on": "2016-05-14T11:57:25+0000",
+  "invite_valid_from": "2026-03-18T19:26:29+0000",
+  "invite_valid_to": "2026-03-19T19:26:29+0000",
+  "invite_link": "hackerrank.com/test/sample/auth_string",
+  "invite_metadata": {
+    "ats_candidate_id": 1
+  },
+  "evaluator_email": null,
+  "test_finish_url": null,
+  "test_result_url": null,
+  "accept_result_updates": false,
+  "tags": [
+    "Java",
+    "Hard",
+    "Senior"
+  ],
+  "report_url": "https://www.hackerrank.com/x/tests/p132983al/candidates/8Sjnbj12/report",
+  "authenticated_report_url": "https://www.hackerrank.com/x/tests/p132983al/candidates/8Sjnbj12/report?authkey=123abc",
+  "pdf_url": "https://www.hackerrank.com/x/tests/p132983al/candidates/8Sjnbj12/pdf",
+  "scores_tags_split": {
+    "Java": 20,
+    "Hard": 2,
+    "Senior": 10
+  },
+  "scores_skills_split": {
+    "Problem Solving (Basic)": 100,
+    ".NET (Intermediate)": 0
+  },
+  "added_time": 0,
+  "unclaimed_added_time": 0,
+  "comments": null,
+  "performance_summary": null,
+  "ip_address": null,
+  "questions": {
+    "score": 5,
+    "answered": true,
+    "answer": "",
+    "name": "",
+    "preview": ""
+  },
+  "plagiarism": null,
+  "plagiarism_status": null,
+  "max_code_similarity": null,
+  "feedback": "Nice experience",
+  "percentage_score": 50,
+  "candidate_details": [
+    {
+      "field_name": "year_of_graduation",
+      "title": "Year of graduation",
+      "value": "2015"
+    }
+  ],
+  "out_of_window_events": 0,
+  "out_of_window_duration": 0,
+  "editor_paste_count": 0,
+  "proctor_images": []
+}
+Get report pdf
+GET	/x/api/v3/tests/{test_id}/candidates/{candidate_id}/pdf?format=url
+
+In case of a 503 HTTP Status, please try downloading the pdf after some time.
+
+Parameters
+
+ID of the test
+
+ID of the candidate
+
+Delete report
+DELETE	/x/api/v3/tests/{test_id}/candidates/{candidate_id}/report
+Parameters
+
+ID of the test
+
+ID of the candidate
+
+Cancel invite
+DELETE	/x/api/v3/tests/{test_id}/candidates/{candidate_id}/invite
+Parameters
+
+ID of the test
+
+ID of the candidate
+
+Search candidates
+GET	/x/api/v3/tests/{test_id}/candidates/search?search={search}&limit={limit}&offset={offset}
+Parameters
+
+ID of the test
+
+Name or email
+
+integer 
+
+Number of records to fetch
+
+integer 
+
+Offset of records
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "data": [
+    {
+      "id": "98Sjnbj12",
+      "full_name": "Alice Wonders",
+      "email": "alice.wonders@email.com",
+      "score": 32.5,
+      "test": "p132983al",
+      "user": "1ok2njXJi",
+      "attempt_starttime": "2016-05-24T06:27:25+0000",
+      "attempt_endtime": "2016-05-24T11:57:25+0000",
+      "attempt_events": null,
+      "status": -1,
+      "ats_state": 0,
+      "integrity_status": null,
+      "integrity_summary": null,
+      "invite_email_done": true,
+      "invite_valid": true,
+      "invited_on": "2016-05-14T11:57:25+0000",
+      "invite_valid_from": "2026-03-18T19:26:29+0000",
+      "invite_valid_to": "2026-03-19T19:26:29+0000",
+      "invite_link": "hackerrank.com/test/sample/auth_string",
+      "invite_metadata": {
+        "ats_candidate_id": 1
+      },
+      "evaluator_email": null,
+      "test_finish_url": null,
+      "test_result_url": null,
+      "accept_result_updates": false,
+      "tags": [
+        "Java",
+        "Hard",
+        "Senior"
+      ],
+      "report_url": "https://www.hackerrank.com/x/tests/p132983al/candidates/8Sjnbj12/report",
+      "authenticated_report_url": "https://www.hackerrank.com/x/tests/p132983al/candidates/8Sjnbj12/report?authkey=123abc",
+      "pdf_url": "https://www.hackerrank.com/x/tests/p132983al/candidates/8Sjnbj12/pdf",
+      "scores_tags_split": {
+        "Java": 20,
+        "Hard": 2,
+        "Senior": 10
+      },
+      "scores_skills_split": {
+        "Problem Solving (Basic)": 100,
+        ".NET (Intermediate)": 0
+      },
+      "added_time": 0,
+      "unclaimed_added_time": 0,
+      "comments": null,
+      "performance_summary": null,
+      "ip_address": null,
+      "questions": {
+        "score": 5,
+        "answered": true,
+        "answer": "",
+        "name": "",
+        "preview": ""
+      },
+      "plagiarism": null,
+      "plagiarism_status": null,
+      "max_code_similarity": null,
+      "feedback": "Nice experience",
+      "percentage_score": 50,
+      "candidate_details": [
+        {
+          "field_name": "year_of_graduation",
+          "title": "Year of graduation",
+          "value": "2015"
+        }
+      ],
+      "out_of_window_events": 0,
+      "out_of_window_duration": 0,
+      "editor_paste_count": 0,
+      "proctor_images": []
+    }
+  ],
+  "page_total": 1,
+  "offset": 0,
+  "previous": "",
+  "next": "https://www.hackerrank.com/x/api/v3/tests/1/candidates?limit=1&offset=1",
+  "first": "https://www.hackerrank.com/x/api/v3/tests/1/candidates?limit=1&offset=0",
+  "last": "https://www.hackerrank.com/x/api/v3/tests/1/candidates?limit=1&offset=12",
+  "total": 13
+}
+List all interviews
+GET	/x/api/v3/interviews
+
+Returns the list of your interviews
+
+Parameters
+integer 
+
+Number of records to fetch
+
+integer 
+
+Offset of records
+
+It is the datetime when the interview was created. It needs to be passed in the form of "from..to". For example: 2024-01-21T13:36:21+0000..2024-01-22T00:00:00+0000. Both "from" and "to" are in form of YYYY-MM-DDThh:mm:ss±zzz where zzz is offset form UTC timezone in form of hh:mm including a leading zero for single digit hour value. All time values are 24 hour format
+
+It is the datetime when the interview was updated. It needs to be passed in the form of "from..to". For example: 2024-01-21T13:36:21+0000..2024-01-22T00:00:00+0000. Both "from" and "to" are in form of YYYY-MM-DDThh:mm:ss±zzz where zzz is offset form UTC timezone in form of hh:mm including a leading zero for single digit hour value. All time values are 24 hour format
+
+It is the datetime when the interview ended. It needs to be passed in the form of "from..to". For example: 2024-01-21T13:36:21+0000..2024-01-22T00:00:00+0000. Both "from" and "to" are in form of YYYY-MM-DDThh:mm:ss±zzz where zzz is offset form UTC timezone in form of hh:mm including a leading zero for single digit hour value. All time values are 24 hour format
+
+Filter by ID of the user who created the interview
+
+Filter by ID of any one interviewer
+
+Filter interviews based on access rights. It can have the following values:
+
+    - owned
+    - shared
+
+
+Filters all interviews based on the current status of the interview.
+
+    0: New
+    1: Active
+    2: Ended
+    3: Paused
+
+
+Sort the interviews in a specific order. It can have the following values:
+
+    - title
+    - id (ID of the interview)
+    - created_at
+    - ended_at
+    - current_status
+    - user
+
+
+Defines the direction of sorting. This parameter is required to be passed if you are using "order_by". It can have the following values:
+
+    - asc: Ascending order
+    - desc: Descending order
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "data": [
+    {
+      "id": "289187",
+      "from": "2026-03-19T19:26:29+0000",
+      "to": "2026-03-19T20:26:29+0000",
+      "status": "new",
+      "url": "www.hackerrank.com/paper/demo",
+      "user": 13245,
+      "created_at": "2026-03-18T19:26:29+0000",
+      "updated_at": "2026-03-18T19:26:29+0000",
+      "title": "Interview with Mark",
+      "feedback": "Candidate is good in system design",
+      "thumbs_up": 1,
+      "notes": "Assess the candidate for system design concepts",
+      "resume_url": "https://www.example.com/resumes/71884928",
+      "interviewers": [
+        {
+          "email": "hina@techcorp.com",
+          "name": "Hina"
+        }
+      ],
+      "result_url": "https://www.techcorp.org/interview_ended",
+      "candidate": {
+        "name": "Mark Ramone",
+        "email": "me@markramone.com"
+      },
+      "metadata": {},
+      "report_url": "www.hackerrank.com/x/interviews/289sadj1/report",
+      "ended_at": "2026-03-18T19:26:29+0000",
+      "interview_template_id": 1234
+    }
+  ],
+  "page_total": 1,
+  "offset": 0,
+  "previous": "",
+  "next": "https://www.hackerrank.com/x/api/v3/interviews?limit=1&offset=1",
+  "first": "https://www.hackerrank.com/x/api/v3/interviews?limit=1&offset=0",
+  "last": "https://www.hackerrank.com/x/api/v3/interviews?limit=1&offset=12",
+  "total": 13
+}
+Create interview
+POST	/x/api/v3/interviews
+Parameters
+
+
+Interview 
+ARGUMENTS
+{}	Interview
+from
+datetime(optional)
+Scheduled start time
+to
+datetime(optional)
+Scheduled end time
+title
+string
+Title of interview
+notes
+string(optional)
+Notes for interviewer
+resume_url
+string(optional)
+Candidate's resume link
+interviewers
+array[string](optional)
+List of interviewers to invite for the interview. You can either send an array of interviewer' ' emails or an array of the type: [{email: 'example@company.com', name: 'Interviewer'}]
+result_url
+string(optional)
+Webhook url for results to be posted after interview is ended, or when thumbs/feedback is changed on a completed interview
+candidate
+CandidateInformation(optional)
+Candidate to invite for the interview.
+send_email
+boolean(optional)
+Send/Resend invitation email to Interview Attendants.
+metadata
+object(optional)
+Any additional information related to the interview.
+interview_template_id
+integer(optional)
+ID of the interview template
+{}	CandidateInformation
+name
+string(optional)
+Full name of the candidate.
+email
+string
+Email address of the candidate.
+RETURNS
+REQUEST BODY SAMPLE
+{
+  "from": "2026-03-19T19:26:29+00:00",
+  "to": "2026-03-19T20:26:29+00:00",
+  "title": "Interview with Mark",
+  "notes": "Assess the candidate for system design concepts",
+  "resume_url": "https://www.example.com/resumes/71884928",
+  "interviewers": [
+    {
+      "email": "hina@techcorp.com",
+      "name": "Hina"
+    }
+  ],
+  "result_url": "https://www.techcorp.org/interview_ended",
+  "candidate": {
+    "name": "Bruce Wayne",
+    "email": "bw@batmaninc.com"
+  },
+  "send_email": false,
+  "metadata": {},
+  "interview_template_id": 1234
+}
+RESPONSE SAMPLE
+{
+  "id": "289187",
+  "from": "2026-03-19T19:26:29+0000",
+  "to": "2026-03-19T20:26:29+0000",
+  "status": "new",
+  "url": "www.hackerrank.com/paper/demo",
+  "user": 13245,
+  "created_at": "2026-03-18T19:26:29+0000",
+  "updated_at": "2026-03-18T19:26:29+0000",
+  "title": "Interview with Mark",
+  "feedback": "Candidate is good in system design",
+  "thumbs_up": 1,
+  "notes": "Assess the candidate for system design concepts",
+  "resume_url": "https://www.example.com/resumes/71884928",
+  "interviewers": [
+    {
+      "email": "hina@techcorp.com",
+      "name": "Hina"
+    }
+  ],
+  "result_url": "https://www.techcorp.org/interview_ended",
+  "candidate": {
+    "name": "Mark Ramone",
+    "email": "me@markramone.com"
+  },
+  "metadata": {},
+  "report_url": "www.hackerrank.com/x/interviews/289sadj1/report",
+  "ended_at": "2026-03-18T19:26:29+0000",
+  "interview_template_id": 1234
+}
+Show interview
+GET	/x/api/v3/interviews/{interview_id}
+Parameters
+
+ID of interview
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "id": "289187",
+  "from": "2026-03-19T19:26:29+0000",
+  "to": "2026-03-19T20:26:29+0000",
+  "status": "new",
+  "url": "www.hackerrank.com/paper/demo",
+  "user": 13245,
+  "created_at": "2026-03-18T19:26:29+0000",
+  "updated_at": "2026-03-18T19:26:29+0000",
+  "title": "Interview with Mark",
+  "feedback": "Candidate is good in system design",
+  "thumbs_up": 1,
+  "notes": "Assess the candidate for system design concepts",
+  "resume_url": "https://www.example.com/resumes/71884928",
+  "interviewers": [
+    {
+      "email": "hina@techcorp.com",
+      "name": "Hina"
+    }
+  ],
+  "result_url": "https://www.techcorp.org/interview_ended",
+  "candidate": {
+    "name": "Mark Ramone",
+    "email": "me@markramone.com"
+  },
+  "metadata": {},
+  "report_url": "www.hackerrank.com/x/interviews/289sadj1/report",
+  "ended_at": "2026-03-18T19:26:29+0000",
+  "interview_template_id": 1234
+}
+Update interview
+PUT	/x/api/v3/interviews/{interview_id}
+Parameters
+
+ID of interview
+
+
+
+Interview 
+ARGUMENTS
+{}	Interview
+from
+datetime
+Scheduled start time
+to
+datetime
+Scheduled end time
+title
+string
+Title of interview
+notes
+string
+Notes for interviewer
+resume_url
+string
+Candidate's resume link
+result_url
+string
+Webhook url for results to be posted after interview is ended, or when thumbs/feedback is changed on a completed interview
+candidate
+object
+Candidate to invite for the interview.
+send_email
+boolean
+Send/Resend invitation email to Interview Attendants.
+metadata
+object
+Any additional information related to the interview.
+interview_template_id
+integer
+ID of the interview template
+RETURNS
+REQUEST BODY SAMPLE
+{
+  "from": "2026-03-19T19:26:29+00:00",
+  "to": "2026-03-19T20:26:29+00:00",
+  "title": "Interview with Mark",
+  "notes": "Assess the candidate for system design concepts",
+  "resume_url": "https://www.example.com/resumes/71884928",
+  "result_url": "https://www.techcorp.org/interview_ended",
+  "candidate": {
+    "name": "Mark Ramone",
+    "email": "me@markramone.com"
+  },
+  "send_email": false,
+  "metadata": {},
+  "interview_template_id": 1234
+}
+RESPONSE SAMPLE
+{
+  "id": "289187",
+  "from": "2026-03-19T19:26:29+0000",
+  "to": "2026-03-19T20:26:29+0000",
+  "status": "new",
+  "url": "www.hackerrank.com/paper/demo",
+  "user": 13245,
+  "created_at": "2026-03-18T19:26:29+0000",
+  "updated_at": "2026-03-18T19:26:29+0000",
+  "title": "Interview with Mark",
+  "feedback": "Candidate is good in system design",
+  "thumbs_up": 1,
+  "notes": "Assess the candidate for system design concepts",
+  "resume_url": "https://www.example.com/resumes/71884928",
+  "interviewers": [
+    {
+      "email": "hina@techcorp.com",
+      "name": "Hina"
+    }
+  ],
+  "result_url": "https://www.techcorp.org/interview_ended",
+  "candidate": {
+    "name": "Mark Ramone",
+    "email": "me@markramone.com"
+  },
+  "metadata": {},
+  "report_url": "www.hackerrank.com/x/interviews/289sadj1/report",
+  "ended_at": "2026-03-18T19:26:29+0000",
+  "interview_template_id": 1234
+}
+Delete interview
+DELETE	/x/api/v3/interviews/{interview_id}
+Parameters
+
+ID of interview
+
+Show interview transcript
+GET	/x/api/v3/interviews/{interview_id}/transcript
+
+Returns the transcript of your interview
+
+Parameters
+
+ID of interview
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "messages": [
+    {
+      "author": "Phil Dunphy",
+      "timestamp": 1753704324940,
+      "text": "Can you walk me through your approach to this problem?",
+      "candidate": false,
+      "messageId": "4:0:16778240:0:357174022",
+      "email": "phil@hackerrank.com"
+    }
+  ]
+}
+Create interview template
+POST	/x/api/v3/interview_templates
+
+Creates a new interview template. Requires CREATE_EDIT entitlement when flexible roles is enabled. Question IDs and skill unique IDs must be accessible to the current user.
+
+Parameters
+
+
+ARGUMENTS
+name
+string
+Name of the interview template
+role_id
+string(optional)
+Role unique ID for the template
+team_share
+integer(optional)
+Team sharing permission level (0: None, 1: Read, 2: Write, 3: Delete). Defaults to 1 (Read) if not provided
+Can be 0, 1, 2 or 3
+question_ids
+array[integer](optional)
+Array of question IDs to add to the template
+RETURNS
+REQUEST BODY SAMPLE
+{
+  "name": "Frontend Developer Interview Template",
+  "role_id": "8b1o41tbpiq",
+  "team_share": 0,
+  "question_ids": [
+    1939659
+  ]
+}
+RESPONSE SAMPLE
+{
+  "id": 12345,
+  "name": "Frontend Developer Interview Template",
+  "created_at": "2026-03-18T19:26:29+0000",
+  "status": 0,
+  "user": 13245,
+  "roles": [
+    "8b1o41tbpiq"
+  ],
+  "team_share": 0,
+  "questions": [
+    1939659
+  ],
+  "scorecard": 98765,
+  "import_template": true,
+  "editor_access": true
+}
+List all interview templates
+GET	/x/api/v3/interview_templates?limit={limit}&offset={offset}
+
+Returns the list of interview templates accessible to the user
+
+Parameters
+integer 
+
+Number of records to fetch
+
+integer 
+
+Offset of records
+
+Filter interview templates by ownership. It can have the following values:
+
+    - owned: Templates created by the current user
+    - shared: Templates shared with the current user (excluding templates created by the current user)
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "data": [
+    {
+      "id": 12345,
+      "name": "Frontend Developer Interview Template",
+      "created_at": "2026-03-18T19:26:29+0000",
+      "status": 0,
+      "user": 13245,
+      "roles": [
+        "8b1o41tbpiq"
+      ],
+      "team_share": 0,
+      "questions": [
+        1939659
+      ],
+      "scorecard": 98765,
+      "import_template": true,
+      "editor_access": true
+    }
+  ],
+  "page_total": 1,
+  "offset": 0,
+  "previous": "",
+  "next": "https://www.hackerrank.com/x/api/v3/interview_templates?limit=1&offset=1",
+  "first": "https://www.hackerrank.com/x/api/v3/interview_templates?limit=1&offset=0",
+  "last": "https://www.hackerrank.com/x/api/v3/interview_templates?limit=1&offset=12",
+  "total": 13
+}
+Show interview template
+GET	/x/api/v3/interview_templates/{template_id}
+
+Returns the details of a single interview template.
+
+Parameters
+integer 
+
+ID of the interview template to retrieve
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "id": 12345,
+  "name": "Frontend Developer Interview Template",
+  "created_at": "2026-03-18T19:26:29+0000",
+  "status": 0,
+  "user": 13245,
+  "roles": [
+    "8b1o41tbpiq"
+  ],
+  "team_share": 0,
+  "questions": [
+    1939659
+  ],
+  "scorecard": 98765,
+  "import_template": true,
+  "editor_access": true
+}
+Update interview template
+PUT	/x/api/v3/interview_templates/{template_id}
+
+Updates an existing interview template. Only the template owner, company admins with explicit sharing enabled, or users with explicit editor access can update. Only provided fields are updated; omitted fields remain unchanged.
+
+Parameters
+integer 
+
+ID of the interview template to update
+
+
+
+ARGUMENTS
+name
+string(optional)
+Name of the interview template
+role_id
+string(optional)
+Role unique ID for the template
+team_share
+integer(optional)
+Team sharing permission level (0: None, 1: Read, 2: Write, 3: Delete)
+Can be 0, 1, 2 or 3
+scorecard_id
+integer(optional)
+ID of the scorecard to associate with the template
+RETURNS
+REQUEST BODY SAMPLE
+{
+  "name": "Frontend Developer Interview Template",
+  "role_id": "8b1o41tbpiq",
+  "team_share": 0,
+  "scorecard_id": 98765
+}
+RESPONSE SAMPLE
+{
+  "id": 12345,
+  "name": "Frontend Developer Interview Template",
+  "created_at": "2026-03-18T19:26:29+0000",
+  "status": 0,
+  "user": 13245,
+  "roles": [
+    "8b1o41tbpiq"
+  ],
+  "team_share": 0,
+  "questions": [
+    1939659
+  ],
+  "scorecard": 98765,
+  "import_template": true,
+  "editor_access": true
+}
+Delete interview template
+DELETE	/x/api/v3/interview_templates/{template_id}
+
+Deletes an interview template. Only the template owner or company admins with explicit sharing enabled can delete a template.
+
+Parameters
+integer 
+
+ID of the interview template to delete
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "message": "Success"
+}
+Questions object
+
+This object represents questions available in this account.
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "id": "2psql21H",
+  "unique_id": "f9pr5p1q9rh",
+  "type": "code",
+  "owner": "bn109na",
+  "created_at": "2026-03-18T19:26:29+0000",
+  "status": "archived",
+  "internal_notes": "<p>This question has brute force solution of <b>O(n)</b> and optimized solution of <b>O(logn)</b></p>",
+  "name": "New question",
+  "languages": [
+    "c",
+    "clojure",
+    "cobol",
+    "cpp",
+    "csharp",
+    "d",
+    "erlang",
+    "fortran",
+    "fsharp",
+    "go",
+    "groovy",
+    "hack",
+    "haskell",
+    "java",
+    "java15",
+    "java17",
+    "java21",
+    "java8",
+    "javascript",
+    "lua",
+    "objectivec",
+    "ocaml",
+    "pascal",
+    "perl",
+    "php",
+    "python",
+    "python3",
+    "racket",
+    "ruby",
+    "rust",
+    "sbcl",
+    "scala",
+    "smalltalk",
+    "swift",
+    "visualbasic"
+  ],
+  "problem_statement": "<p>Problem statement </p>",
+  "recommended_duration": 1,
+  "tags": [
+    "tag1",
+    "tag2",
+    "tag3"
+  ],
+  "max_score": 100,
+  "options": null,
+  "answer": null
+}
+List all questions
+GET	/x/api/v3/questions
+Parameters
+
+Question status (active/archived)
+
+Access type (library, owned, shared) (comma separated values)
+
+Difficulty of questions (comma separated values)
+
+Type of questions (comma separated values)
+
+User ids (comma separated values)
+
+Tags (comma separated values)
+
+Skills (comma separated values)
+
+Languages allowed for the question (comma separated values)
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "data": [
+    {
+      "id": "2psql21H",
+      "unique_id": "f9pr5p1q9rh",
+      "type": "code",
+      "owner": "bn109na",
+      "created_at": "2026-03-18T19:26:29+0000",
+      "status": "archived",
+      "internal_notes": "<p>This question has brute force solution of <b>O(n)</b> and optimized solution of <b>O(logn)</b></p>",
+      "name": "New question",
+      "languages": [
+        "c",
+        "clojure",
+        "cobol",
+        "cpp",
+        "csharp",
+        "d",
+        "erlang",
+        "fortran",
+        "fsharp",
+        "go",
+        "groovy",
+        "hack",
+        "haskell",
+        "java",
+        "java15",
+        "java17",
+        "java21",
+        "java8",
+        "javascript",
+        "lua",
+        "objectivec",
+        "ocaml",
+        "pascal",
+        "perl",
+        "php",
+        "python",
+        "python3",
+        "racket",
+        "ruby",
+        "rust",
+        "sbcl",
+        "scala",
+        "smalltalk",
+        "swift",
+        "visualbasic"
+      ],
+      "problem_statement": "<p>Problem statement </p>",
+      "recommended_duration": 1,
+      "tags": [
+        "tag1",
+        "tag2",
+        "tag3"
+      ],
+      "max_score": 100,
+      "options": null,
+      "answer": null
+    }
+  ],
+  "page_total": 1,
+  "offset": 0,
+  "previous": "",
+  "next": "https://www.hackerrank.com/x/api/v3/question?limit=1&offset=1",
+  "first": "https://www.hackerrank.com/x/api/v3/question?limit=1&offset=0",
+  "last": "https://www.hackerrank.com/x/api/v3/question?limit=1&offset=12",
+  "total": 13
+}
+Create Question
+POST	/x/api/v3/questions
+Parameters
+
+
+Question 
+ARGUMENTS
+{}	Question
+type
+string
+Type of question
+Can be code, approx, mcq, multiple_mcq, whiteboard, file_upload or textAns
+internal_notes
+string(optional)
+Internal notes for the question. This will be rendered as HTML
+name
+string
+Name of the question
+languages
+array[string](optional)
+Languages available for this question. This is only available for code/approx question types.
+problem_statement
+string
+Problem statement for the question. Note: This will be rendered as HTML
+recommended_duration
+integer
+Recommended time in minutes to solve the question
+tags
+array[string](optional)
+Array of tags to associate with this question
+options
+array[string](optional)
+Array of options available for multiple choice questions. This is only available for mcq/multiple_mcq question types.
+Example: ["option1", "option2", "option3"]
+answer
+integer,array(optional)
+Index (starting from 1) of the correct option for type mcq
+Example: 1 for the first option in the options array
+
+Indices (starting from 1) of the correct options for type multiple_mcq
+Example: [2, 3] for the second and third options in the options array
+RETURNS
+REQUEST BODY SAMPLE
+{
+  "type": "code",
+  "internal_notes": "<p>This question has brute force solution of <b>O(n)</b> and optimized solution of <b>O(logn)</b></p>",
+  "name": "New question",
+  "languages": [
+    "c",
+    "clojure",
+    "cobol",
+    "cpp",
+    "csharp",
+    "d",
+    "erlang",
+    "fortran",
+    "fsharp",
+    "go",
+    "groovy",
+    "hack",
+    "haskell",
+    "java",
+    "java15",
+    "java17",
+    "java21",
+    "java8",
+    "javascript",
+    "lua",
+    "objectivec",
+    "ocaml",
+    "pascal",
+    "perl",
+    "php",
+    "python",
+    "python3",
+    "racket",
+    "ruby",
+    "rust",
+    "sbcl",
+    "scala",
+    "smalltalk",
+    "swift",
+    "visualbasic"
+  ],
+  "problem_statement": "<p>Problem statement </p>",
+  "recommended_duration": 1,
+  "tags": [
+    "tag1",
+    "tag2",
+    "tag3"
+  ],
+  "options": null,
+  "answer": null
+}
+RESPONSE SAMPLE
+{
+  "id": "2psql21H",
+  "unique_id": "f9pr5p1q9rh",
+  "type": "code",
+  "owner": "bn109na",
+  "created_at": "2026-03-18T19:26:29+0000",
+  "status": "archived",
+  "internal_notes": "<p>This question has brute force solution of <b>O(n)</b> and optimized solution of <b>O(logn)</b></p>",
+  "name": "New question",
+  "languages": [
+    "c",
+    "clojure",
+    "cobol",
+    "cpp",
+    "csharp",
+    "d",
+    "erlang",
+    "fortran",
+    "fsharp",
+    "go",
+    "groovy",
+    "hack",
+    "haskell",
+    "java",
+    "java15",
+    "java17",
+    "java21",
+    "java8",
+    "javascript",
+    "lua",
+    "objectivec",
+    "ocaml",
+    "pascal",
+    "perl",
+    "php",
+    "python",
+    "python3",
+    "racket",
+    "ruby",
+    "rust",
+    "sbcl",
+    "scala",
+    "smalltalk",
+    "swift",
+    "visualbasic"
+  ],
+  "problem_statement": "<p>Problem statement </p>",
+  "recommended_duration": 1,
+  "tags": [
+    "tag1",
+    "tag2",
+    "tag3"
+  ],
+  "max_score": 100,
+  "options": null,
+  "answer": null
+}
+Show question
+GET	/x/api/v3/questions/{question_id}
+Parameters
+
+ID of question
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "id": "2psql21H",
+  "unique_id": "f9pr5p1q9rh",
+  "type": "code",
+  "owner": "bn109na",
+  "created_at": "2026-03-18T19:26:29+0000",
+  "status": "archived",
+  "internal_notes": "<p>This question has brute force solution of <b>O(n)</b> and optimized solution of <b>O(logn)</b></p>",
+  "name": "New question",
+  "languages": [
+    "c",
+    "clojure",
+    "cobol",
+    "cpp",
+    "csharp",
+    "d",
+    "erlang",
+    "fortran",
+    "fsharp",
+    "go",
+    "groovy",
+    "hack",
+    "haskell",
+    "java",
+    "java15",
+    "java17",
+    "java21",
+    "java8",
+    "javascript",
+    "lua",
+    "objectivec",
+    "ocaml",
+    "pascal",
+    "perl",
+    "php",
+    "python",
+    "python3",
+    "racket",
+    "ruby",
+    "rust",
+    "sbcl",
+    "scala",
+    "smalltalk",
+    "swift",
+    "visualbasic"
+  ],
+  "problem_statement": "<p>Problem statement </p>",
+  "recommended_duration": 1,
+  "tags": [
+    "tag1",
+    "tag2",
+    "tag3"
+  ],
+  "max_score": 100,
+  "options": null,
+  "answer": null
+}
+Update question
+PUT	/x/api/v3/questions/{question_id}
+Parameters
+
+ID of question
+
+
+
+Question 
+ARGUMENTS
+{}	Question
+type
+string
+Type of question
+Can be code, approx, mcq, multiple_mcq, whiteboard, file_upload or textAns
+internal_notes
+string
+Internal notes for the question. This will be rendered as HTML
+name
+string
+Name of the question
+languages
+array[string]
+Languages available for this question. This is only available for code/approx question types.
+problem_statement
+string
+Problem statement for the question. Note: This will be rendered as HTML
+recommended_duration
+integer
+Recommended time in minutes to solve the question
+tags
+array[string]
+Array of tags to associate with this question
+options
+array[string]
+Array of options available for multiple choice questions. This is only available for mcq/multiple_mcq question types.
+Example: ["option1", "option2", "option3"]
+answer
+integer,array
+Index (starting from 1) of the correct option for type mcq
+Example: 1 for the first option in the options array
+
+Indices (starting from 1) of the correct options for type multiple_mcq
+Example: [2, 3] for the second and third options in the options array
+RETURNS
+REQUEST BODY SAMPLE
+{
+  "type": "code",
+  "internal_notes": "<p>This question has brute force solution of <b>O(n)</b> and optimized solution of <b>O(logn)</b></p>",
+  "name": "New question",
+  "languages": [
+    "c",
+    "clojure",
+    "cobol",
+    "cpp",
+    "csharp",
+    "d",
+    "erlang",
+    "fortran",
+    "fsharp",
+    "go",
+    "groovy",
+    "hack",
+    "haskell",
+    "java",
+    "java15",
+    "java17",
+    "java21",
+    "java8",
+    "javascript",
+    "lua",
+    "objectivec",
+    "ocaml",
+    "pascal",
+    "perl",
+    "php",
+    "python",
+    "python3",
+    "racket",
+    "ruby",
+    "rust",
+    "sbcl",
+    "scala",
+    "smalltalk",
+    "swift",
+    "visualbasic"
+  ],
+  "problem_statement": "<p>Problem statement </p>",
+  "recommended_duration": 1,
+  "tags": [
+    "tag1",
+    "tag2",
+    "tag3"
+  ],
+  "options": null,
+  "answer": null
+}
+RESPONSE SAMPLE
+{
+  "id": "2psql21H",
+  "unique_id": "f9pr5p1q9rh",
+  "type": "code",
+  "owner": "bn109na",
+  "created_at": "2026-03-18T19:26:29+0000",
+  "status": "archived",
+  "internal_notes": "<p>This question has brute force solution of <b>O(n)</b> and optimized solution of <b>O(logn)</b></p>",
+  "name": "New question",
+  "languages": [
+    "c",
+    "clojure",
+    "cobol",
+    "cpp",
+    "csharp",
+    "d",
+    "erlang",
+    "fortran",
+    "fsharp",
+    "go",
+    "groovy",
+    "hack",
+    "haskell",
+    "java",
+    "java15",
+    "java17",
+    "java21",
+    "java8",
+    "javascript",
+    "lua",
+    "objectivec",
+    "ocaml",
+    "pascal",
+    "perl",
+    "php",
+    "python",
+    "python3",
+    "racket",
+    "ruby",
+    "rust",
+    "sbcl",
+    "scala",
+    "smalltalk",
+    "swift",
+    "visualbasic"
+  ],
+  "problem_statement": "<p>Problem statement </p>",
+  "recommended_duration": 1,
+  "tags": [
+    "tag1",
+    "tag2",
+    "tag3"
+  ],
+  "max_score": 100,
+  "options": null,
+  "answer": null
+}
+Generate codestubs
+PUT	/x/api/v3/questions/{question_id}/generate
+Parameters
+
+ID of question
+
+
+
+ARGUMENTS
+type
+string(optional)
+Type of question
+Can be code or approx
+functionName
+string(optional)
+Name of the function
+functionParams
+string(optional)
+Parameters for the function. There can be more than one parameters. Example: INTEGER param1 STRING param2
+functionReturn
+string(optional)
+Return type of the function
+allowedLanguages
+string(optional)
+Languages available for codestub generation. This is only available for code/approx question types.
+RETURNS
+REQUEST BODY SAMPLE
+{
+  "type": "code",
+  "functionName": "function_name",
+  "functionParams": "INTEGER param",
+  "functionReturn": "INTEGER",
+  "allowedLanguages": "C, Clojure"
+}
+RESPONSE SAMPLE
+{
+  "functionName": "function_name",
+  "functionParams": "INTEGER param",
+  "functionReturn": "INTEGER",
+  "allowedLanguages": "C, Clojure",
+  "c_template_head": "#include <assert.h>\n#include <ctype.h>\n#include <limits.h>\n#include <math.h>\n#include <stdbool.h>\n#include <stddef.h>\n#include <stdint.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\nchar* readline();\nchar* ltrim(char*);\nchar* rtrim(char*);\n\nint parse_int(char*);\n\n",
+  "c_template_tail": "int main()\n{\n    FILE* fptr = fopen(getenv(\"OUTPUT_PATH\"), \"w\");\n\n    int param = parse_int(ltrim(rtrim(readline())));\n\n    int result = function_name(param);\n\n    fprintf(fptr, \"%d\\n\", result);\n\n    fclose(fptr);\n\n    return 0;\n}\n\nchar* readline() {\n    size_t alloc_length = 1024;\n    size_t data_length = 0;\n\n    char* data = malloc(alloc_length);\n\n    while (true) {\n        char* cursor = data + data_length;\n        char* line = fgets(cursor, alloc_length - data_length, stdin);\n\n        if (!line) {\n            break;\n        }\n\n        data_length += strlen(cursor);\n\n        if (data_length < alloc_length - 1 || data[data_length - 1] == '\\n') {\n            break;\n        }\n\n        alloc_length <<= 1;\n\n        data = realloc(data, alloc_length);\n\n        if (!data) {\n            data = '\\0';\n\n            break;\n        }\n    }\n\n    if (data[data_length - 1] == '\\n') {\n        data[data_length - 1] = '\\0';\n\n        data = realloc(data, data_length);\n\n        if (!data) {\n            data = '\\0';\n        }\n    } else {\n        data = realloc(data, data_length + 1);\n\n        if (!data) {\n            data = '\\0';\n        } else {\n            data[data_length] = '\\0';\n        }\n    }\n\n    return data;\n}\n\nchar* ltrim(char* str) {\n    if (!str) {\n        return '\\0';\n    }\n\n    if (!*str) {\n        return str;\n    }\n\n    while (*str != '\\0' && isspace(*str)) {\n        str++;\n    }\n\n    return str;\n}\n\nchar* rtrim(char* str) {\n    if (!str) {\n        return '\\0';\n    }\n\n    if (!*str) {\n        return str;\n    }\n\n    char* end = str + strlen(str) - 1;\n\n    while (end >= str && isspace(*end)) {\n        end--;\n    }\n\n    *(end + 1) = '\\0';\n\n    return str;\n}\n\nint parse_int(char* str) {\n    char* endptr;\n    int value = strtol(str, &endptr, 10);\n\n    if (endptr == str || *endptr != '\\0') {\n        exit(EXIT_FAILURE);\n    }\n\n    return value;\n}\n",
+  "c_template": "/*\n * Complete the 'function_name' function below.\n *\n * The function is expected to return an INTEGER.\n * The function accepts INTEGER param as parameter.\n */\n\nint function_name(int param) {\n\n}\n\n",
+  "clojure_template_head": "\n\n",
+  "clojure_template_tail": "(def fptr (get (System/getenv) \"OUTPUT_PATH\"))\n\n(def param (Integer/parseInt (clojure.string/trim (read-line))))\n\n(def result (function_name param))\n\n(spit fptr (str result \"\\n\") :append true)\n",
+  "clojure_template": ";\n; Complete the 'function_name' function below.\n;\n; The function is expected to return an INTEGER.\n; The function accepts INTEGER param as parameter.\n;\n\n(defn function_name [param]\n\n)\n\n",
+  "template_type": "1"
+}
+Update codestubs
+PUT	/x/api/v3/questions/{question_id}/custom_codestubs
+Parameters
+
+ID of question
+
+
+
+ARGUMENTS
+templates
+array[Inline Model 1](optional)
+List of the template
+{}	Inline Model 1
+language
+string(optional)
+Language of the template
+head
+string(optional)
+Head of the template
+body
+string(optional)
+template
+tail
+string(optional)
+Tail of the template
+REQUEST BODY SAMPLE
+{
+  "templates": [
+    {
+      "language": "c",
+      "head": "",
+      "body": "int main()",
+      "tail": ""
+    },
+    {
+      "language": "cpp",
+      "head": "",
+      "body": "int main()",
+      "tail": ""
+    }
+  ]
+}
+Add testcase
+POST	/x/api/v3/questions/{question_id}/testcases
+Parameters
+
+ID of question
+
+
+
+ARGUMENTS
+explanation
+string(optional)
+The explanation for the testcase
+input
+string(optional)
+Input for the testcase
+output
+string(optional)
+Output for the testcase
+name
+string(optional)
+Name of the testcase
+qid
+integer(optional)
+Question id of the question to which testcase will be added
+sample
+integer(optional)
+True if it is a sample testcase
+score
+integer(optional)
+Score of the testcase
+type
+string(optional)
+Type of the testcase
+REQUEST BODY SAMPLE
+{
+  "explanation": "",
+  "input": "input",
+  "output": "output",
+  "name": "name",
+  "qid": 1,
+  "sample": false,
+  "score": 10,
+  "type": "easy"
+}
+Update testcase
+PUT	/x/api/v3/questions/{question_id}/testcases/{testcase_id}
+Parameters
+
+ID of question
+
+Testcase ID
+
+
+
+ARGUMENTS
+explanation
+string(optional)
+The explanation for the testcase
+input
+string(optional)
+Input for the testcase
+output
+string(optional)
+Output for the testcase
+name
+string(optional)
+Name of the testcase
+qid
+integer(optional)
+Question id of the question to which testcase will be added
+sample
+integer(optional)
+True if it is a sample testcase
+score
+integer(optional)
+Score of the testcase
+type
+string(optional)
+Type of the testcase
+REQUEST BODY SAMPLE
+{
+  "explanation": "",
+  "input": "input",
+  "output": "output",
+  "name": "name",
+  "qid": 1,
+  "sample": false,
+  "score": 10,
+  "type": "easy"
+}
+Delete testcase
+DELETE	/x/api/v3/questions/{question_id}/testcases/{testcase_id}
+Parameters
+
+ID of question
+
+Testcase ID
+
+Delete All testcases
+DELETE	/x/api/v3/questions/{question_id}/testcases/delete_all
+Parameters
+
+ID of question
+
+List all invite templates
+GET	/x/api/v3/templates
+Parameters
+
+Access type (shared/owned)
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "data": [
+    {
+      "id": "2psql21H",
+      "name": "New template",
+      "subject": "Subject",
+      "content": "<p>Hello</p>",
+      "default": false,
+      "created_at": "2026-03-18T00:00:00+0000",
+      "updated_at": "2026-03-18T00:00:00+0000",
+      "user": "bn109na"
+    }
+  ],
+  "page_total": 1,
+  "offset": 0,
+  "previous": "",
+  "next": "https://www.hackerrank.com/x/api/v3/templates?limit=1&offset=1",
+  "first": "https://www.hackerrank.com/x/api/v3/templates?limit=1&offset=0",
+  "last": "https://www.hackerrank.com/x/api/v3/templates?limit=1&offset=12",
+  "total": 13
+}
+Show invite template
+GET	/x/api/v3/templates/{template_id}
+Parameters
+
+ID of template
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "id": "2psql21H",
+  "name": "New template",
+  "subject": "Subject",
+  "content": "<p>Hello</p>",
+  "default": false,
+  "created_at": "2026-03-18T00:00:00+0000",
+  "updated_at": "2026-03-18T00:00:00+0000",
+  "user": "bn109na"
+}
+Audit Log Object
+
+This object represents audit-log structure for this account.
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "source_id": 12345,
+  "source_type": "user",
+  "action": "update",
+  "modified_fields": [
+    "firstname",
+    "lastname"
+  ],
+  "modified_values": {
+    "firstname": {
+      "from": "Mark",
+      "to": "Andrew"
+    },
+    "lastname": {
+      "from": "Peirson",
+      "to": "Symonds"
+    }
+  },
+  "ip_address": "8.8.8.8",
+  "created_at": "2026-03-19T19:26:29+0000"
+}
+List all audit logs
+GET	/x/api/v3/audit_log?limit={limit}&offset={offset}&user_id={user_id}
+
+Returns the list of audit logs.
+
+Parameters
+integer 
+
+Number of records to fetch
+
+integer 
+
+Offset of records
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "data": [
+    {
+      "source_id": 12345,
+      "source_type": "user",
+      "user": "54321",
+      "action": "update",
+      "modified_fields": [
+        "firstname",
+        "lastname"
+      ],
+      "modified_values": {
+        "firstname": {
+          "from": "Mark",
+          "to": "Andrew"
+        },
+        "lastname": {
+          "from": "Peirson",
+          "to": "Symonds"
+        }
+      },
+      "ip_address": "8.8.8.8",
+      "created_at": "2026-03-19T19:26:29+0000"
+    }
+  ],
+  "page_total": 1,
+  "offset": 0,
+  "previous": "",
+  "next": "https://www.hackerrank.com/x/api/v3/audit_logs?limit=1&offset=1",
+  "first": "https://www.hackerrank.com/x/api/v3/audit_logs?limit=1&offset=0",
+  "last": "https://www.hackerrank.com/x/api/v3/audit_logs?limit=1&offset=12",
+  "total": 13
+}
+ATS Candidate Invite
+POST	/x/api/v3/ats/codescreen
+
+Use this API when sending an invite from an ATS system. This API requires a requisition_id and candidate_id, which allows HackerRank to track a single candidate across multiple requisitions who are sent the same test. This API is only enabled for approved integrations, a partner key from HackerRank is required in the request.
+
+Parameters
+
+
+ATSCodeScreen 
+ARGUMENTS
+{}	ATSCodeScreen
+test_id
+string
+Test id for the candidate.
+requisition_id
+string
+ATS specific requisition id.
+candidate_id
+string
+ATS specific candidate id.
+email
+string
+Email address of the candidate.
+send_email
+boolean(optional)
+Flag to send the invite email to the candidate.
+test_result_url
+string(optional)
+Webhook URL for candidate report. When the report is processed the report data will be sent to this URL as a webhook.
+webhook_authentication
+WebhookAuthentication(optional)
+Authentication configuration for the webhook URL. Required when test_result_url is provided.
+accept_result_updates
+boolean(optional)
+Flag to send score and status updates to the test_result_url. Please set to "true" if you accept updates. Default is "false".
+force
+boolean(optional)
+Flag which forces sending an email even when the candidate has already been invited. Must be true if sending the same test from multiple requisitions.
+force_reattempt_after
+integer(optional)
+Force re-invite the candidate if the previous attempt is older than the current time minus this value (in seconds).
+accommodations
+CandidateAccommodations(optional)
+Object containing candidate accommodations.
+{}	WebhookAuthentication
+type
+string
+Type of authentication to use for the webhook.
+Can be bearer_token or basic_auth
+data
+Inline Model 1
+Authentication data based on the type. For bearer_token, provide {token: "string"}. For basic_auth, provide {username: "string", password: "string"}.
+{}	CandidateAccommodations
+additional_time_percent
+integer(optional)
+A percentage of the test duration to be added as additional time. Value must be greater than 0.
+{}	Inline Model 1
+token
+string(optional)
+Bearer token for authentication. Required when type is "bearer_token".
+username
+string(optional)
+Username for basic authentication. Required when type is "basic_auth".
+password
+string(optional)
+Password for basic authentication. Required when type is "basic_auth".
+RETURNS
+REQUEST BODY SAMPLE
+{
+  "test_id": "123",
+  "requisition_id": "300BR",
+  "candidate_id": "5432",
+  "email": "alice.wonders@email.com",
+  "send_email": true,
+  "test_result_url": null,
+  "webhook_authentication": {
+    "type": "bearer_token",
+    "data": {
+      "token": "string"
+    }
+  },
+  "accept_result_updates": false,
+  "force": false,
+  "force_reattempt_after": 31556952,
+  "accommodations": {
+    "additional_time_percent": 25
+  }
+}
+RESPONSE SAMPLE
+{
+  "test_link": "https://www.hackerrank.com/tests/bdsiod7sd22/login?b=efJ1c2VybmFtZSI6ImRhbm55LnBldGVyc29uQGhff2tlcnJhbmsuY19tIiwidGFzc3dvcmQiOiI0ZTQ4OWJjNSIsImhpZGUiOnRydWV9",
+  "email": "alice.wonders@email.com",
+  "id": "10000"
+}
+ATS Interview Invite
+POST	/x/api/v3/ats/codepair
+
+Use this API when sending an interview invite from an ATS system. This API requires a title, requisition_id and candidate_id. This API is only enabled for approved integrations, a partner key from HackerRank is required in the request.
+
+Parameters
+
+
+ATSCodePair 
+ARGUMENTS
+{}	ATSCodePair
+title
+string
+Title of the interview.
+requisition_id
+string
+ATS specific requisition id.
+candidate_id
+string
+ATS specific candidate id.
+candidate
+CandidateInformation(optional)
+Object containing candidate information.
+send_email
+boolean(optional)
+Flag to send the invite email to the candidate.
+interview_metadata
+InterviewMetadata(optional)
+Object containing metadata for the interview.
+{}	CandidateInformation
+name
+string(optional)
+Full name of the candidate.
+email
+string
+Email address of the candidate.
+{}	InterviewMetadata
+aws_request_id
+string(optional)
+AWS request id for the invite.
+first_name
+string(optional)
+First name of the candidate.
+last_name
+string(optional)
+Last name of the candidate.
+RETURNS
+REQUEST BODY SAMPLE
+{
+  "title": "Interview with Bruce Wayne.",
+  "requisition_id": "BATCAVE-093",
+  "candidate_id": "BATMAN-001",
+  "candidate": {
+    "name": "Bruce Wayne",
+    "email": "bw@batmaninc.com"
+  },
+  "send_email": true,
+  "interview_metadata": {
+    "aws_request_id": "Bat01",
+    "first_name": "Bruce",
+    "last_name": "Wayne"
+  }
+}
+RESPONSE SAMPLE
+{
+  "id": "289187",
+  "from": "2026-03-19T19:26:29+0000",
+  "to": "2026-03-19T20:26:29+0000",
+  "status": "new",
+  "url": "www.hackerrank.com/paper/demo",
+  "user": 13245,
+  "created_at": "2026-03-18T19:26:29+0000",
+  "updated_at": "2026-03-18T19:26:29+0000",
+  "title": "Interview with Mark",
+  "feedback": "Candidate is good in system design",
+  "thumbs_up": 1,
+  "notes": "Assess the candidate for system design concepts",
+  "resume_url": "https://www.example.com/resumes/71884928",
+  "interviewers": [
+    {
+      "email": "hina@techcorp.com",
+      "name": "Hina"
+    }
+  ],
+  "result_url": "https://www.techcorp.org/interview_ended",
+  "candidate": {
+    "name": "Mark Ramone",
+    "email": "me@markramone.com"
+  },
+  "metadata": {},
+  "report_url": "www.hackerrank.com/x/interviews/289sadj1/report",
+  "ended_at": "2026-03-18T19:26:29+0000",
+  "interview_template_id": 1234
+}
+Overview
+
+Provision and manage user accounts and groups with the HackerRank SCIM v2.0 API. SCIM is used by Single Sign-On (SSO) services and identity providers to manage people across a variety of services. Read more at: https://www.rfc-editor.org/rfc/rfc7644.html
+
+The HackerRank SCIM v2 API Endpoints use the following base URL: https://services.hackerrank.com/scim/v2
+
+The API Key to be used for SCIM can be found under SSO settings in HackerRank: https://www.hackerrank.com/work/settings/sso
+
+List Users
+GET	/Users?limit={limit}&offset={offset}
+
+Returns the list of your users. When returning a large list of users, your SCIM implementation must support pagination.
+
+In order to retrieve additional resources, the offset query parameter can be incremented for subsequent requests.
+
+Parameters
+integer 
+
+Number of records to fetch
+
+integer 
+
+Offset of records
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "schemas": [
+    "urn:ietf:params:scim:schemas:core:2.0:ListResponse"
+  ],
+  "Resources": [
+    {
+      "id": "jox1JH13",
+      "name": {
+        "familyName": "Peirson",
+        "givenName": "Mark"
+      },
+      "userName": "mark@example.com",
+      "active": true,
+      "role": "recruiter",
+      "team_admin": false,
+      "company_admin": false,
+      "emails": [
+        {
+          "value": "mark@example.com",
+          "primary": true
+        }
+      ]
+    }
+  ],
+  "startIndex": 0,
+  "itemsPerPage": 1,
+  "totalResults": 1
+}
+Create User
+POST	/Users
+
+Create a new user object.
+
+Parameters
+
+
+SCIMUser 
+ARGUMENTS
+{}	SCIMUser
+name
+object
+Name of the user
+userName
+string
+User name of user
+active
+boolean(optional)
+Whether the user is active or not
+role
+string(optional)
+When role is admin, it defaults to recruiter. Role of user
+Can be recruiter, developer, interviewer or admin
+team_admin
+boolean(optional)
+Whether the user is a team admin of the teams that it is a part of.
+company_admin
+boolean(optional)
+Whether the user is a company admin or not
+emails
+array[string]
+List of user emails
+RETURNS
+REQUEST BODY SAMPLE
+{
+  "name": {
+    "familyName": "Peirson",
+    "givenName": "Mark"
+  },
+  "userName": "mark@example.com",
+  "active": true,
+  "role": "recruiter",
+  "team_admin": false,
+  "company_admin": false,
+  "emails": [
+    {
+      "value": "mark@example.com",
+      "primary": true
+    }
+  ]
+}
+RESPONSE SAMPLE
+{
+  "id": "jox1JH13",
+  "name": {
+    "familyName": "Peirson",
+    "givenName": "Mark"
+  },
+  "userName": "mark@example.com",
+  "active": true,
+  "role": "recruiter",
+  "team_admin": false,
+  "company_admin": false,
+  "emails": [
+    {
+      "value": "mark@example.com",
+      "primary": true
+    }
+  ],
+  "schemas": []
+}
+Retrieve User
+GET	/Users/{id}
+
+Retrieves the details of an existing user. You need only supply the unique customer identifier that was returned upon user creation.
+
+Parameters
+string 
+
+ID of user to retrieve
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "id": "jox1JH13",
+  "name": {
+    "familyName": "Peirson",
+    "givenName": "Mark"
+  },
+  "userName": "mark@example.com",
+  "active": true,
+  "role": "recruiter",
+  "team_admin": false,
+  "company_admin": false,
+  "emails": [
+    {
+      "value": "mark@example.com",
+      "primary": true
+    }
+  ],
+  "schemas": []
+}
+Edit User - PATCH
+PATCH	/Users/{id}
+
+Updates the specified user by setting the values of the parameters passed. Any parameters not provided will be left unchanged. This request accepts mostly the same arguments as the user creation call.
+
+Parameters
+string 
+
+ID of user to update
+
+
+
+SCIMPatch 
+ARGUMENTS
+{}	SCIMPatch
+operations
+array[PatchOperationObject]
+Array of PATCH operations that should be performed to update the resource's information. Each PATCH operation must have exactly one `op` member
+{}	PatchOperationObject
+op
+string(optional)
+The method that should be used in the operation.
+Can be add, replace or remove
+value
+object(optional)
+Represents a key-value pair that should be updated.
+RETURNS
+REQUEST BODY SAMPLE
+{
+  "operations": [
+    {
+      "op": "add",
+      "value": "{\"nickName\" : \"Billy\"}"
+    }
+  ]
+}
+RESPONSE SAMPLE
+{
+  "schemas": [
+    "urn:ietf:params:scim:schemas:core:2.0:User"
+  ],
+  "message": "Successful transaction"
+}
+Edit User - PUT
+PUT	/Users/{id}
+
+Updates the specified user by setting the values of the parameters passed. Any parameters not provided will be left unchanged. This request accepts mostly the same arguments as the user creation call.
+
+Parameters
+string 
+
+ID of user to update
+
+
+
+SCIMUser 
+ARGUMENTS
+{}	SCIMUser
+name
+object
+Name of the user
+active
+boolean
+Whether the user is active or not
+role
+string
+When role is admin, it defaults to recruiter. Role of user
+Can be recruiter, developer, interviewer or admin
+team_admin
+boolean
+Whether the user is a team admin of the teams that it is a part of.
+company_admin
+boolean
+Whether the user is a company admin or not
+emails
+array[string]
+List of user emails
+RETURNS
+REQUEST BODY SAMPLE
+{
+  "name": {
+    "familyName": "Peirson",
+    "givenName": "Mark"
+  },
+  "active": true,
+  "role": "recruiter",
+  "team_admin": false,
+  "company_admin": false,
+  "emails": [
+    {
+      "value": "mark@example.com",
+      "primary": true
+    }
+  ]
+}
+RESPONSE SAMPLE
+{
+  "id": "jox1JH13",
+  "name": {
+    "familyName": "Peirson",
+    "givenName": "Mark"
+  },
+  "userName": "mark@example.com",
+  "active": true,
+  "role": "recruiter",
+  "team_admin": false,
+  "company_admin": false,
+  "emails": [
+    {
+      "value": "mark@example.com",
+      "primary": true
+    }
+  ],
+  "schemas": []
+}
+Lock User
+DELETE	/Users/{id}
+
+Lock a user. This will also remove user from all the team that they are currently part of.
+
+Parameters
+string 
+
+ID of user to lock
+
+Response Messages
+204	User locked
+List Teams
+GET	/Groups?limit={limit}&offset={offset}
+
+Returns the list of your teams. When returning a large list of teams, your SCIM implementation must support pagination.
+
+In order to retrieve additional resources, the offset query parameter can be incremented for subsequent requests.
+
+Parameters
+integer 
+
+Number of records to fetch
+
+integer 
+
+Offset of records
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "schemas": [
+    "urn:ietf:params:scim:schemas:core:2.0:ListResponse"
+  ],
+  "Resources": [
+    {
+      "id": "14bd8ec8b071",
+      "diplayName": "Owners"
+    }
+  ],
+  "startIndex": 0,
+  "itemsPerPage": 1,
+  "totalResults": 1
+}
+Create Team
+POST	/Groups
+
+Create a new team object
+
+Parameters
+
+
+SCIMTeam 
+ARGUMENTS
+{}	SCIMTeam
+diplayName
+string
+Name of the team
+RETURNS
+REQUEST BODY SAMPLE
+{
+  "diplayName": "Owners"
+}
+RESPONSE SAMPLE
+{
+  "id": "14bd8ec8b071",
+  "diplayName": "Owners",
+  "schemas": [
+    "urn:ietf:params:scim:schemas:core:2.0:Group"
+  ]
+}
+Retrieve Team
+GET	/Groups/{id}
+
+Retrieves the details of an existing Team. You need only supply the unique customer identifier that was returned upon Team creation.
+
+Parameters
+
+ID of the team to retrieve
+
+RETURNS
+RESPONSE SAMPLE
+{
+  "id": "14bd8ec8b071",
+  "diplayName": "Owners",
+  "schemas": [
+    "urn:ietf:params:scim:schemas:core:2.0:Group"
+  ]
+}
+Update Team
+PATCH	/Groups/{id}
+
+Update the team's information using the operations provided.
+
+Parameters
+
+ID of the team to update
+
+
+
+SCIMPatch 
+ARGUMENTS
+{}	SCIMPatch
+operations
+array[PatchOperationObject]
+Array of PATCH operations that should be performed to update the resource's information. Each PATCH operation must have exactly one `op` member
+{}	PatchOperationObject
+op
+string(optional)
+The method that should be used in the operation.
+Can be add, replace or remove
+value
+object(optional)
+Represents a key-value pair that should be updated.
+RETURNS
+REQUEST BODY SAMPLE
+{
+  "operations": [
+    {
+      "op": "add",
+      "value": "{\"nickName\" : \"Billy\"}"
+    }
+  ]
+}
+RESPONSE SAMPLE
+{
+  "schemas": [
+    "urn:ietf:params:scim:schemas:core:2.0:Group"
+  ],
+  "message": "Successful transaction"
+}
+Deprovision Team
+DELETE	/Groups/{id}
+
+Locks all HackerRank Users belonging to this Team.
+
+Parameters
+string 
+
+ID of the Team to lock
+
+Response Messages
+204	Team locked
+1

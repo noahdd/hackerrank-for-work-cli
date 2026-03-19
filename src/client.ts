@@ -1,98 +1,124 @@
-const BASE_URL = process.env.HACKERRANK_BASE_URL || "https://www.hackerrank.com/x/api/v3";
+export class HackerRankClient {
+  private baseUrl: string;
+  private apiKey: string;
 
-function getApiKey(): string {
-  const key = process.env.HACKERRANK_API_KEY;
-  if (!key) {
-    console.error("Error: HACKERRANK_API_KEY environment variable is required.");
-    console.error("Generate one at: https://www.hackerrank.com/work/settings/token");
-    process.exit(1);
-  }
-  return key;
-}
+  constructor(apiKey?: string, baseUrl?: string) {
+    this.apiKey = apiKey || process.env.HACKERRANK_API_KEY || "";
+    this.baseUrl = baseUrl || process.env.HACKERRANK_BASE_URL || "https://www.hackerrank.com/x/api/v3";
 
-async function request(path: string, params?: Record<string, string>): Promise<unknown> {
-  const url = new URL(`${BASE_URL}${path}`);
-  if (params) {
-    for (const [key, value] of Object.entries(params)) {
-      if (value !== undefined && value !== "") {
-        url.searchParams.set(key, value);
-      }
+    if (!this.apiKey) {
+      console.error("Error: HACKERRANK_API_KEY environment variable is required.");
+      console.error("Generate one at: https://www.hackerrank.com/work/settings/token");
+      process.exit(1);
     }
   }
 
-  const apiKey = getApiKey();
-  const response = await fetch(url.toString(), {
-    headers: {
-      Authorization: `Basic ${Buffer.from(apiKey + ":").toString("base64")}`,
-      Accept: "application/json",
-    },
-  });
+  async request(path: string, params?: Record<string, string>): Promise<unknown> {
+    const url = new URL(`${this.baseUrl}${path}`);
+    if (params) {
+      for (const [key, value] of Object.entries(params)) {
+        if (value !== undefined && value !== "") {
+          url.searchParams.set(key, value);
+        }
+      }
+    }
 
-  if (!response.ok) {
-    const body = await response.text();
-    console.error(`API error ${response.status}: ${body}`);
-    process.exit(1);
+    const response = await fetch(url.toString(), {
+      headers: {
+        Authorization: `Basic ${Buffer.from(this.apiKey + ":").toString("base64")}`,
+        Accept: "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const body = await response.text();
+      throw new Error(`API error ${response.status}: ${body}`);
+    }
+
+    return response.json();
   }
 
-  return response.json();
+  // Tests
+
+  async listTests(limit = "20", offset = "0") {
+    return this.request("/tests", { limit, offset });
+  }
+
+  async getTest(id: string) {
+    return this.request(`/tests/${id}`, {
+      additional_fields: "questions,sections,candidate_details,cutoff_score,languages,tags,role_ids,experience,sections_data",
+    });
+  }
+
+  async listTestInviters(testId: string) {
+    return this.request(`/tests/${testId}/inviters`);
+  }
+
+  // Candidates
+
+  async listCandidates(testId: string, limit = "20", offset = "0") {
+    return this.request(`/tests/${testId}/candidates`, { limit, offset });
+  }
+
+  async getCandidate(testId: string, candidateId: string) {
+    return this.request(`/tests/${testId}/candidates/${candidateId}`, {
+      additional_fields: "questions,plagiarism,comments,performance_summary,integrity_status,integrity_summary,proctor_images,candidate_details,scores_tags_split,scores_skills_split,percentage_score",
+    });
+  }
+
+  async searchCandidates(testId: string, search: string, limit = "20", offset = "0") {
+    return this.request(`/tests/${testId}/candidates/search`, { search, limit, offset });
+  }
+
+  async getCandidatePdf(testId: string, candidateId: string) {
+    return this.request(`/tests/${testId}/candidates/${candidateId}/pdf`, { format: "url" });
+  }
+
+  // Interviews
+
+  async listInterviews(limit = "20", offset = "0") {
+    return this.request("/interviews", { limit, offset });
+  }
+
+  async getInterview(interviewId: string) {
+    return this.request(`/interviews/${interviewId}`);
+  }
+
+  async getInterviewTranscript(interviewId: string) {
+    return this.request(`/interviews/${interviewId}/transcript`);
+  }
+
+  // Questions
+
+  async listQuestions(limit = "20", offset = "0") {
+    return this.request("/questions", { limit, offset });
+  }
+
+  async getQuestion(questionId: string) {
+    return this.request(`/questions/${questionId}`);
+  }
 }
 
-// Tests
+// Default client for CLI usage
+let defaultClient: HackerRankClient | null = null;
 
-export async function listTests(limit = "20", offset = "0") {
-  return request("/tests", { limit, offset });
+function getClient(): HackerRankClient {
+  if (!defaultClient) {
+    defaultClient = new HackerRankClient();
+  }
+  return defaultClient;
 }
 
-export async function getTest(id: string) {
-  return request(`/tests/${id}`, {
-    additional_fields: "questions,sections,candidate_details,cutoff_score,languages,tags,role_ids,experience,sections_data",
-  });
-}
-
-export async function listTestInviters(testId: string) {
-  return request(`/tests/${testId}/inviters`);
-}
-
-// Candidates
-
-export async function listCandidates(testId: string, limit = "20", offset = "0") {
-  return request(`/tests/${testId}/candidates`, { limit, offset });
-}
-
-export async function getCandidate(testId: string, candidateId: string) {
-  return request(`/tests/${testId}/candidates/${candidateId}`, {
-    additional_fields: "questions,plagiarism,comments,performance_summary,integrity_status,integrity_summary,proctor_images,candidate_details,scores_tags_split,scores_skills_split,percentage_score",
-  });
-}
-
-export async function searchCandidates(testId: string, search: string, limit = "20", offset = "0") {
-  return request(`/tests/${testId}/candidates/search`, { search, limit, offset });
-}
-
-export async function getCandidatePdf(testId: string, candidateId: string) {
-  return request(`/tests/${testId}/candidates/${candidateId}/pdf`, { format: "url" });
-}
-
-// Interviews
-
-export async function listInterviews(limit = "20", offset = "0") {
-  return request("/interviews", { limit, offset });
-}
-
-export async function getInterview(interviewId: string) {
-  return request(`/interviews/${interviewId}`);
-}
-
-export async function getInterviewTranscript(interviewId: string) {
-  return request(`/interviews/${interviewId}/transcript`);
-}
-
-// Questions
-
-export async function listQuestions(limit = "20", offset = "0") {
-  return request("/questions", { limit, offset });
-}
-
-export async function getQuestion(questionId: string) {
-  return request(`/questions/${questionId}`);
-}
+// Re-export as standalone functions for the CLI
+export const listTests = (limit?: string, offset?: string) => getClient().listTests(limit, offset);
+export const getTest = (id: string) => getClient().getTest(id);
+export const listTestInviters = (testId: string) => getClient().listTestInviters(testId);
+export const listCandidates = (testId: string, limit?: string, offset?: string) => getClient().listCandidates(testId, limit, offset);
+export const getCandidate = (testId: string, candidateId: string) => getClient().getCandidate(testId, candidateId);
+export const searchCandidates = (testId: string, search: string, limit?: string, offset?: string) => getClient().searchCandidates(testId, search, limit, offset);
+export const getCandidatePdf = (testId: string, candidateId: string) => getClient().getCandidatePdf(testId, candidateId);
+export const listInterviews = (limit?: string, offset?: string) => getClient().listInterviews(limit, offset);
+export const getInterview = (interviewId: string) => getClient().getInterview(interviewId);
+export const getInterviewTranscript = (interviewId: string) => getClient().getInterviewTranscript(interviewId);
+export const listQuestions = (limit?: string, offset?: string) => getClient().listQuestions(limit, offset);
+export const getQuestion = (questionId: string) => getClient().getQuestion(questionId);

@@ -9,11 +9,15 @@
   },
   "scripts": {
     "build": "tsc",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration"
   },
   "license": "MIT",
   "devDependencies": {
+    "@types/node": "^20.11.0",
     "typescript": "^5.3.3",
-    "@types/node": "^20.11.0"
+    "vitest": "^2.1.9"
   }
 }
